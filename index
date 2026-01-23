@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado ANBIMA - 90 Questões</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+        /* Animation for feedback */
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800">
+
+    <!-- Top Bar Fixa (Progresso e Score) -->
+    <div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm h-16 flex items-center px-4 md:px-8 justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                <i data-lucide="award" class="w-5 h-5"></i>
+            </div>
+            <h1 class="font-bold text-lg text-slate-800 hidden md:block">Simulado ANBIMA</h1>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-xs text-slate-500 uppercase font-semibold">Progresso</p>
+                <p class="text-sm font-bold text-indigo-600"><span id="progress-count">0</span> / 90</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-500 uppercase font-semibold">Acertos</p>
+                <p class="text-sm font-bold text-green-600" id="score-count">0</p>
+            </div>
+            <button onclick="resetSimulado()" class="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Reiniciar Simulado">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="flex pt-16 min-h-screen">
+        
+        <!-- Sidebar de Navegação (Desktop) -->
+        <aside class="hidden lg:block w-72 bg-white border-r border-gray-200 fixed bottom-0 top-16 overflow-y-auto p-6">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Navegação Rápida</h3>
+            <nav class="space-y-1" id="nav-links">
+                <!-- Links gerados via JS -->
+            </nav>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 lg:ml-72 p-4 md:p-8 max-w-4xl mx-auto">
+            
+            <div class="mb-8 mt-4">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Simulado Completo</h2>
+                <p class="text-slate-600">
+                    Responda as 90 questões abaixo. O sistema salva seu progresso automaticamente. 
+                    Clique na alternativa para ver a correção e explicação imediata.
+                </p>
+            </div>
+
+            <!-- Container das Questões -->
+            <div id="questions-container" class="space-y-12 pb-20">
+                <!-- Questões injetadas via JS -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Principal -->
+    <script>
+        // --- BANCO DE DADOS DAS 90 QUESTÕES ---
+        const questionsData = [
+            // BLOCO 1 (10 Questões)
+            { id: 1, category: "BLOCO 1 — Ética, Conduta e Adequação", text: "O princípio da lealdade no relacionamento com o cliente exige que o profissional:", options: ["Priorize os interesses da instituição", "Atue sempre em benefício do cliente, mesmo quando houver conflito", "Ofereça apenas produtos conservadores", "Execute ordens sem questionamento"], correct: 1, explanation: "O Princípio da Lealdade (Dever Fiduciário) exige colocar os interesses do cliente acima dos da instituição ou do próprio profissional." },
+            { id: 2, category: "BLOCO 1", text: "O dever de adequação tem como principal objetivo:", options: ["Reduzir riscos legais da instituição", "Garantir que o produto seja compatível com o perfil e objetivos do cliente", "Aumentar a rentabilidade da carteira", "Padronizar investimentos"], correct: 1, explanation: "Adequação (Suitability) serve para proteger o investidor, garantindo que ele não invista em algo que não entende ou que tenha riscos superiores à sua tolerância." },
+            { id: 3, category: "BLOCO 1", text: "É considerada prática vedada ao profissional certificado ANBIMA:", options: ["Atualizar o cadastro do cliente", "Prometer rentabilidade futura", "Informar riscos do produto", "Registrar o atendimento"], correct: 1, explanation: "É estritamente proibido garantir ou prometer rentabilidade futura em produtos de risco (Renda Variável, Fundos), pois o retorno é incerto." },
+            { id: 4, category: "BLOCO 1", text: "(CASE) Um cliente classificado como conservador solicita investir em um produto de alto risco, afirmando estar ciente das possíveis perdas. O profissional deve:", options: ["Executar a ordem imediatamente", "Recusar o investimento", "Orientar sobre os riscos, registrar a ciência do cliente e avaliar a adequação", "Alterar o perfil para agressivo"], correct: 2, explanation: "O cliente pode investir fora do perfil (desenquadramento), desde que seja alertado sobre o risco e a inadequação, e dê seu aceite formal (Termo de Desenquadramento)." },
+            { id: 5, category: "BLOCO 1", text: "A transparência no atendimento pressupõe:", options: ["Comunicação apenas quando solicitada", "Clareza sobre riscos, custos e características dos produtos", "Linguagem técnica obrigatória", "Foco exclusivo na rentabilidade"], correct: 1, explanation: "A transparência exige que todas as informações relevantes (vantagens, riscos, custos, liquidez) sejam passadas de forma clara e compreensível, sem omissões que induzam a erro." },
+            { id: 6, category: "BLOCO 1", text: "O conflito de interesses ocorre quando:", options: ["O cliente assume risco elevado", "O profissional tem interesse próprio que pode afetar sua recomendação", "O mercado apresenta volatilidade", "O produto possui taxa elevada"], correct: 1, explanation: "Quando o ganho do profissional (ex: meta, comissão) compete com o melhor interesse do cliente." },
+            { id: 7, category: "BLOCO 1", text: "O registro do atendimento é importante porque:", options: ["Substitui o questionário de perfil", "Documenta as orientações e decisões tomadas", "Serve apenas para auditoria interna", "É facultativo"], correct: 1, explanation: "O registro comprova que o profissional cumpriu seu dever de informação e suitability, servindo de proteção para ambas as partes." },
+            { id: 8, category: "BLOCO 1", text: "O profissional deve recusar uma recomendação quando:", options: ["O cliente insiste", "O produto é incompatível com o perfil e objetivos do investidor", "A taxa de administração é alta", "O mercado está favorável"], correct: 1, explanation: "Se o produto não é adequado (suitability), o profissional não deve RECOMENDAR. Se o cliente insistir (ordem não solicitada), aí aplica-se o desenquadramento." },
+            { id: 9, category: "BLOCO 1", text: "É dever do profissional certificado:", options: ["Garantir retorno mínimo", "Atuar com diligência e boa-fé", "Prometer segurança absoluta", "Eliminar riscos"], correct: 1, explanation: "Diligência (cuidado, zelo) e Boa-fé são os pilares da conduta ética. Garantir retorno ou eliminar risco é impossível no mercado." },
+            { id: 10, category: "BLOCO 1", text: "(CASE) Durante o atendimento, o cliente demonstra não compreender totalmente o funcionamento do produto indicado. O profissional deve:", options: ["Prosseguir para não perder a venda", "Simplificar a explicação e confirmar o entendimento", "Solicitar assinatura imediata", "Encerrar o atendimento"], correct: 1, explanation: "O dever de informação exige que o cliente COMPREENDA. O profissional deve ajustar a linguagem até ter certeza que o cliente entendeu o que está contratando." },
+
+            // BLOCO 2 (8 Questões)
+            { id: 11, category: "BLOCO 2 — Sistema Financeiro Nacional", text: "O Conselho Monetário Nacional (CMN) tem como função principal:", options: ["Executar a política monetária", "Definir diretrizes do Sistema Financeiro Nacional", "Fiscalizar instituições financeiras", "Regular fundos de investimento"], correct: 1, explanation: "O CMN é o órgão normativo máximo. Ele 'manda', define as metas (ex: Meta de Inflação) e diretrizes gerais. Quem executa é o Banco Central." },
+            { id: 12, category: "BLOCO 2", text: "O Banco Central do Brasil é responsável por:", options: ["Regular o mercado de capitais", "Executar a política monetária e controlar a liquidez", "Garantir depósitos dos investidores", "Administrar fundos"], correct: 1, explanation: "O Bacen executa as ordens do CMN, controla a inflação (via Selic/Compulsório) e fiscaliza os bancos." },
+            { id: 13, category: "BLOCO 2", text: "A Comissão de Valores Mobiliários (CVM) atua principalmente na:", options: ["Política fiscal", "Supervisão do mercado de valores mobiliários", "Definição da taxa Selic", "Garantia de crédito"], correct: 1, explanation: "A CVM cuida do mercado de capitais: Bolsa, Fundos, Ações e Debêntures. Protege o investidor nessas áreas." },
+            { id: 14, category: "BLOCO 2", text: "A ANBIMA é caracterizada como entidade de:", options: ["Fiscalização governamental", "Autorregulação do mercado financeiro", "Política monetária", "Supervisão bancária"], correct: 1, explanation: "ANBIMA é uma associação privada que exerce a Autorregulação (regras criadas pelo próprio mercado para elevar o padrão de qualidade)." },
+            { id: 15, category: "BLOCO 2", text: "A taxa Selic é utilizada como referência para:", options: ["Rentabilidade de ações", "Juros básicos da economia", "Taxas de câmbio", "Índices imobiliários"], correct: 1, explanation: "A Selic é a taxa livre de risco e balizadora de todo o crédito e rentabilidade da Renda Fixa no país." },
+            { id: 16, category: "BLOCO 2", text: "O Fundo Garantidor de Créditos (FGC) tem como objetivo:", options: ["Proteger investidores contra perdas de mercado", "Garantir depósitos em caso de insolvência da instituição", "Cobrir prejuízos em ações", "Garantir rentabilidade mínima"], correct: 1, explanation: "O FGC garante que você receba seu dinheiro de volta (até o limite) se o banco quebrar (insolvência). Não cobre oscilação de mercado." },
+            { id: 17, category: "BLOCO 2", text: "Estão cobertos pelo FGC:", options: ["Ações", "Fundos de investimento", "CDB e LCI", "Debêntures"], correct: 2, explanation: "FGC cobre produtos bancários: Conta Corrente, Poupança, CDB, LCI, LCA, LC. Fundos e Ações não têm essa garantia." },
+            { id: 18, category: "BLOCO 2", text: "O limite de cobertura do FGC é de:", options: ["R$ 100 mil por CPF", "R$ 250 mil por CPF e instituição", "R$ 500 mil por aplicação", "Valor ilimitado"], correct: 1, explanation: "A regra atual é R$ 250 mil por CPF e por Conglomerado Financeiro (limitado a um teto global de R$ 1 milhão a cada 4 anos)." },
+
+            // BLOCO 3 (8 Questões)
+            { id: 19, category: "BLOCO 3 — Perfil do Investidor, Risco e Liquidez", text: "Um investidor conservador prioriza principalmente:", options: ["Alta rentabilidade", "Segurança e liquidez", "Exposição a ações", "Volatilidade"], correct: 1, explanation: "O conservador não quer perder o principal. Ele aceita ganhar menos em troca de Segurança (não perder) e Liquidez (sacar rápido)." },
+            { id: 20, category: "BLOCO 3", text: "O perfil do investidor deve ser revisto quando:", options: ["O mercado oscila", "Há mudança na situação financeira ou objetivos", "O profissional decide", "O cliente obtém ganhos"], correct: 1, explanation: "O perfil muda com a vida. Casamento, herança, aposentadoria, desemprego alteram a capacidade e vontade de tomar risco." },
+            { id: 21, category: "BLOCO 3", text: "Liquidez pode ser definida como:", options: ["Nível de risco do investimento", "Facilidade de conversão em dinheiro", "Rentabilidade esperada", "Prazo de vencimento"], correct: 1, explanation: "Liquidez é a velocidade e facilidade com que você transforma um ativo em dinheiro na conta pelo preço justo." },
+            { id: 22, category: "BLOCO 3", text: "Rentabilidade passada:", options: ["Garante desempenho futuro", "Serve apenas como referência histórica", "Elimina riscos", "Substitui análise"], correct: 1, explanation: "Regra de ouro: Rentabilidade passada não é garantia de rentabilidade futura. O mercado muda." },
+            { id: 23, category: "BLOCO 3", text: "A diversificação reduz principalmente:", options: ["Risco sistemático", "Risco específico", "Inflação", "Tributação"], correct: 1, explanation: "Diversificar (comprar vários ativos) elimina o risco de UM ativo específico dar problema. Não elimina o risco do mercado todo (sistemático) cair." },
+            { id: 24, category: "BLOCO 3", text: "(CASE) Cliente pretende utilizar os recursos em 3 meses. Qual característica é essencial no investimento?", options: ["Alta volatilidade", "Baixa liquidez", "Alta liquidez", "Longo prazo"], correct: 2, explanation: "Para prazos curtos, a liquidez é o fator mais importante. O cliente precisa ter certeza que poderá resgatar o dinheiro em 3 meses sem travas." },
+            { id: 25, category: "BLOCO 3", text: "O risco de crédito está associado à:", options: ["Variação do preço do ativo", "Possibilidade de inadimplência do emissor", "Oscilação do mercado", "Inflação"], correct: 1, explanation: "Risco de crédito é o 'risco de calote'. É o emissor não devolver o dinheiro emprestado." },
+            { id: 26, category: "BLOCO 3", text: "Um investimento com maior risco tende a oferecer:", options: ["Menor retorno", "Maior retorno esperado", "Retorno garantido", "Ausência de volatilidade"], correct: 1, explanation: "Relação Risco x Retorno: ninguém corre risco de graça. Para aceitar risco, o investidor exige uma expectativa de retorno maior." },
+
+            // BLOCO 4 (12 Questões)
+            { id: 27, category: "BLOCO 4 — Renda Fixa", text: "Um título de renda fixa caracteriza-se por:", options: ["Rentabilidade imprevisível", "Regras de remuneração definidas", "Ausência de risco", "Liquidez obrigatória"], correct: 1, explanation: "Na Renda Fixa, você sabe COMO será pago (ex: 10% ou 100% do CDI) no momento da contratação." },
+            { id: 28, category: "BLOCO 4", text: "O emissor de um CDB é:", options: ["Tesouro Nacional", "Instituição financeira", "Empresa não financeira", "Bolsa de valores"], correct: 1, explanation: "CDB (Certificado de Depósito Bancário) é emitido por Bancos (Instituições Financeiras)." },
+            { id: 29, category: "BLOCO 4", text: "O Tesouro Selic é mais indicado para:", options: ["Investimentos de longo prazo com volatilidade", "Reserva de emergência", "Especulação", "Proteção cambial"], correct: 1, explanation: "Por ter baixa volatilidade e liquidez diária, é o ativo mais seguro para Reserva de Emergência." },
+            { id: 30, category: "BLOCO 4", text: "Um título prefixado apresenta:", options: ["Rentabilidade atrelada à inflação", "Taxa definida no momento da aplicação", "Rentabilidade variável", "Isenção de risco"], correct: 1, explanation: "No prefixado, a taxa é nominal e fixa (ex: 12% a.a.). Você sabe o valor final exato em reais se levar ao vencimento." },
+            { id: 31, category: "BLOCO 4", text: "O risco de mercado em títulos de renda fixa está relacionado à:", options: ["Inadimplência", "Oscilação das taxas de juros", "Falta de liquidez", "Tributação"], correct: 1, explanation: "Se os juros de mercado sobem, o preço do título prefixado cai (Marcação a Mercado). Isso é risco de mercado na renda fixa." },
+            { id: 32, category: "BLOCO 4", text: "Marcação a mercado significa:", options: ["Manter o título até o vencimento", "Atualizar diariamente o valor do título conforme o mercado", "Garantir retorno", "Eliminar volatilidade"], correct: 1, explanation: "É trazer o valor do título para o preço justo de hoje. Se vender hoje, é esse valor que recebe (pode ter ágio ou deságio)." },
+            { id: 33, category: "BLOCO 4", text: "LCI e LCA possuem como principal vantagem para pessoa física:", options: ["Alta liquidez", "Isenção de Imposto de Renda", "Rentabilidade garantida", "Prazo curto"], correct: 1, explanation: "LCI (Imobiliário) e LCA (Agro) são isentos de IR para PF como forma de incentivo do governo a esses setores." },
+            { id: 34, category: "BLOCO 4", text: "Quanto maior o prazo do investimento em renda fixa tributável, segundo a tabela regressiva:", options: ["Maior o imposto", "Menor o imposto", "Imposto fixo", "Isenção automática"], correct: 1, explanation: "A tabela regressiva beneficia quem deixa o dinheiro mais tempo. Começa em 22,5% e cai para 15% após 720 dias." },
+            { id: 35, category: "BLOCO 4", text: "(CASE) Cliente deseja previsibilidade de retorno até o vencimento. Qual produto é mais adequado?", options: ["Tesouro Selic", "Tesouro Prefixado", "Fundo multimercado", "Fundo de ações"], correct: 1, explanation: "O Tesouro Prefixado é o único que diz exatamente quanto vai render (ex: 10% a.a.) se carregado até o final, garantindo previsibilidade nominal." },
+            { id: 36, category: "BLOCO 4", text: "A tabela regressiva do IR na renda fixa inicia em:", options: ["15%", "17,5%", "20%", "22,5%"], correct: 3, explanation: "A alíquota máxima para curto prazo (até 180 dias) é de 22,5%." },
+            { id: 37, category: "BLOCO 4", text: "O FGC cobre aplicações até o limite de:", options: ["R$ 100 mil", "R$ 250 mil", "R$ 500 mil", "Sem limite"], correct: 1, explanation: "R$ 250.000,00 por CPF e por instituição financeira." },
+            { id: 38, category: "BLOCO 4", text: "Um investimento resgatado antes do vencimento pode sofrer:", options: ["Isenção de imposto", "Oscilação de preço", "Garantia de retorno", "Eliminação de risco"], correct: 1, explanation: "Devido à Marcação a Mercado, sair antes do prazo expõe o investidor à oscilação de preço, podendo gerar prejuízo sobre o principal." },
+
+            // BLOCO 5 (7 Questões)
+            { id: 39, category: "BLOCO 5 — Fundos de Investimento", text: "Um fundo de investimento é juridicamente um:", options: ["Título de crédito", "Condomínio de investidores", "Derivativo", "Banco"], correct: 1, explanation: "Fundo é um condomínio onde diversos investidores (cotistas) juntam recursos para investir em conjunto sob regras comuns." },
+            { id: 40, category: "BLOCO 5", text: "A taxa de administração de um fundo é cobrada:", options: ["Apenas se houver lucro", "Independentemente da rentabilidade", "Somente no resgate", "Apenas em fundos de ações"], correct: 1, explanation: "A taxa de administração paga os custos fixos (gestor, administrador) e é cobrada sempre, mesmo que o fundo tenha prejuízo." },
+            { id: 41, category: "BLOCO 5", text: "Fundos DI investem majoritariamente em:", options: ["Ações", "Títulos atrelados à taxa Selic", "Moedas estrangeiras", "Imóveis"], correct: 1, explanation: "Fundos DI (Referenciados DI) investem em títulos de baixo risco (públicos ou privados) atrelados à Selic/CDI." },
+            { id: 42, category: "BLOCO 5", text: "O patrimônio líquido de um fundo corresponde:", options: ["Ao capital do gestor", "Aos ativos menos os passivos", "Apenas ao lucro", "À rentabilidade acumulada"], correct: 1, explanation: "PL = Soma de tudo que o fundo tem (Ativos) menos o que ele deve pagar (Passivos/Despesas)." },
+            { id: 43, category: "BLOCO 5", text: "O come-cotas ocorre em fundos de:", options: ["Ações", "Renda fixa e multimercado", "Imobiliários", "ETFs"], correct: 1, explanation: "Come-cotas (antecipação de IR) ocorre em maio e novembro nos fundos de Renda Fixa, Cambial e Multimercado (Abertos)." },
+            { id: 44, category: "BLOCO 5", text: "(CASE) Cliente conservador deseja investir via fundo com liquidez diária. Qual fundo é mais adequado?", options: ["Fundo de ações", "Fundo cambial", "Fundo DI", "Fundo multimercado agressivo"], correct: 2, explanation: "O Fundo DI oferece baixo risco e liquidez imediata, alinhado ao perfil conservador." },
+            { id: 45, category: "BLOCO 5", text: "Fundos de investimento são regulados pela:", options: ["ANBIMA", "CVM", "Receita Federal", "Banco Central"], correct: 1, explanation: "A Comissão de Valores Mobiliários (CVM) é o órgão regulador e fiscalizador da indústria de fundos no Brasil." },
+
+            // BLOCO 6 (5 Questões)
+            { id: 46, category: "BLOCO 6 — Tributação Básica e Situações Práticas", text: "O imposto sobre renda fixa incide sobre:", options: ["Valor total investido", "Apenas o rendimento", "O patrimônio", "O prazo"], correct: 1, explanation: "O IR incide apenas sobre o LUCRO (rendimento). O valor principal investido não é tributado novamente." },
+            { id: 47, category: "BLOCO 6", text: "Ganho de capital ocorre quando:", options: ["O investimento vence", "O valor de venda é maior que o de compra", "Há pagamento de juros", "O fundo cobra taxa"], correct: 1, explanation: "Ganho de capital é a diferença positiva entre o preço que você vendeu e o preço que pagou." },
+            { id: 48, category: "BLOCO 6", text: "(CASE) Cliente resgata um CDB após 150 dias. Qual a alíquota de IR?", options: ["15%", "17,5%", "20%", "22,5%"], correct: 3, explanation: "Até 180 dias, a alíquota é a máxima da tabela regressiva: 22,5%." },
+            { id: 49, category: "BLOCO 6", text: "Dividendos recebidos por pessoa física são, atualmente:", options: ["Tributados na fonte", "Isentos de IR", "Tributados na declaração", "Considerados ganho de capital"], correct: 1, explanation: "Pela legislação atual, dividendos distribuídos por ações são isentos de IR para pessoa física." },
+            { id: 50, category: "BLOCO 6", text: "(CASE) Cliente deseja alto retorno em curto prazo, com baixo risco. A conduta correta do profissional é:", options: ["Prometer rentabilidade", "Explicar que risco e retorno estão relacionados", "Oferecer ações", "Executar a ordem sem esclarecimentos"], correct: 1, explanation: "Não existe 'alto retorno, curto prazo e baixo risco' (tríade impossível). O profissional deve educar o cliente sobre a relação risco x retorno." },
+
+            // BLOCO 7 - Prática Avançada (40 Questões Extras)
+            { id: 51, category: "BLOCO 7 — Prática Avançada", text: "O PIB mede:", options: ["A inflação", "A soma de bens e serviços finais produzidos", "O déficit público", "O câmbio"], correct: 1, explanation: "PIB é a soma de riquezas, o termômetro da atividade econômica." },
+            { id: 52, category: "BLOCO 7", text: "Política Fiscal Contracionista envolve:", options: ["Aumento de gastos", "Aumento de impostos e corte de gastos", "Queda de juros", "Emissão de moeda"], correct: 1, explanation: "Visa reduzir a demanda agregada e controlar a inflação/dívida." },
+            { id: 53, category: "BLOCO 7", text: "Chinese Wall serve para evitar:", options: ["Lavagem de dinheiro", "Conflito de interesses e Insider Trading", "Risco de mercado", "Tributação"], correct: 1, explanation: "Barreira que segrega informações entre áreas conflitantes do banco." },
+            { id: 54, category: "BLOCO 7", text: "PGBL é ideal para quem:", options: ["Faz declaração simplificada", "É isento", "Faz declaração completa", "Quer liquidez diária"], correct: 2, explanation: "Permite dedução fiscal de até 12% da renda bruta." },
+            { id: 55, category: "BLOCO 7", text: "VGBL tributa:", options: ["Total", "Lucro", "Nada", "Entrada"], correct: 1, explanation: "IR incide apenas sobre os rendimentos (lucro), não sobre o principal." },
+            { id: 56, category: "BLOCO 7", text: "Smurfing é técnica de:", options: ["Investimento", "Lavagem de dinheiro (fracionamento)", "Hedge", "Análise"], correct: 1, explanation: "Fracionar grandes depósitos em pequenos para evitar alertas." },
+            { id: 57, category: "BLOCO 7", text: "COAF deve ser comunicado:", options: ["Com aviso ao cliente", "Sem aviso ao cliente", "Apenas com ordem judicial", "Mensalmente"], correct: 1, explanation: "Sigilo absoluto é obrigatório (Tipping Off é proibido)." },
+            { id: 58, category: "BLOCO 7", text: "API vencido:", options: ["Permite recomendar", "Impede recomendação", "Permite resgate apenas", "Bloqueia conta"], correct: 1, explanation: "Instituição não pode recomendar produtos sem perfil válido." },
+            { id: 59, category: "BLOCO 7", text: "Viés da Ancoragem:", options: ["Seguir outros", "Fixar em preço passado", "Medo", "Confiança"], correct: 1, explanation: "Investidor se prende a um valor de referência irrelevante." },
+            { id: 60, category: "BLOCO 7", text: "IGP-M é muito usado em:", options: ["Aluguel", "Selic", "Ações", "FGC"], correct: 0, explanation: "Índice de inflação que reajusta contratos de aluguel e energia." },
+            { id: 61, category: "BLOCO 7", text: "Juro Real positivo:", options: ["Nominal < Inflação", "Nominal > Inflação", "Igual Inflação", "Zero"], correct: 1, explanation: "Ganho acima da inflação, aumento do poder de compra." },
+            { id: 62, category: "BLOCO 7", text: "Debênture Incentivada:", options: ["Tem FGC", "Isenta IR", "Paga dividendo", "Risco zero"], correct: 1, explanation: "Isenta de IR para PF, financia infraestrutura." },
+            { id: 63, category: "BLOCO 7", text: "Ação ON dá direito a:", options: ["Dividendo fixo", "Voto e Tag Along", "Juros", "Resgate"], correct: 1, explanation: "Ordinária (ON) = Voto e Proteção na venda da empresa." },
+            { id: 64, category: "BLOCO 7", text: "Fundo Ações IR Resgate:", options: ["20%", "15%", "Isento", "Regressivo"], correct: 1, explanation: "Alíquota única de 15% no resgate." },
+            { id: 65, category: "BLOCO 7", text: "IOF zera em:", options: ["10 dias", "15 dias", "30 dias", "1 ano"], correct: 2, explanation: "A tabela regressiva do IOF vai do 1º ao 29º dia." },
+            { id: 66, category: "BLOCO 7", text: "Risco não sistemático:", options: ["Mercado", "Específico do ativo", "Dólar", "Inflação"], correct: 1, explanation: "Risco específico da empresa, eliminável com diversificação." },
+            { id: 67, category: "BLOCO 7", text: "Open Finance premissa:", options: ["Dado é do banco", "Dado é do cliente", "Proibido", "Pago"], correct: 1, explanation: "O cliente é dono dos seus dados e decide com quem compartilhar." },
+            { id: 68, category: "BLOCO 7", text: "Tesouro IPCA+ protege de:", options: ["Deflação", "Inflação", "Dólar", "Crédito"], correct: 1, explanation: "Paga juro real + IPCA, garantindo poder de compra." },
+            { id: 69, category: "BLOCO 7", text: "Come-cotas reduz:", options: ["Valor da cota", "Quantidade de cotas", "IR", "Taxa"], correct: 1, explanation: "O governo recolhe o imposto 'comendo' pedaços do investimento." },
+            { id: 70, category: "BLOCO 7", text: "Day Trade IR:", options: ["15%", "20%", "Isento", "22.5%"], correct: 1, explanation: "Alíquota de 20% sobre o lucro, sem isenção." },
+            { id: 71, category: "BLOCO 7", text: "Fundo Fechado:", options: ["Resgate a qualquer hora", "Só vende cota na bolsa", "Sem taxa", "Sem risco"], correct: 1, explanation: "Não permite resgate, cotas são negociadas no mercado secundário." },
+            { id: 72, category: "BLOCO 7", text: "CNSP regula:", options: ["Bancos", "Seguros", "Bolsa", "Dólar"], correct: 1, explanation: "Conselho Nacional de Seguros Privados." },
+            { id: 73, category: "BLOCO 7", text: "Lavagem fase 3:", options: ["Colocação", "Ocultação", "Integração", "Finalização"], correct: 2, explanation: "O dinheiro volta à economia com aparência lícita." },
+            { id: 74, category: "BLOCO 7", text: "Suitability analisa:", options: ["Só renda", "Só risco", "Financeiro, Objetivo, Conhecimento", "Idade"], correct: 2, explanation: "Os 3 pilares obrigatórios da análise de perfil." },
+            { id: 75, category: "BLOCO 7", text: "Efeito Manada:", options: ["Análise técnica", "Seguir a maioria", "Medo", "Ganância"], correct: 1, explanation: "Tomar decisão baseado no comportamento da massa." },
+            { id: 76, category: "BLOCO 7", text: "Política Fiscal:", options: ["Juros", "Gastos e Impostos", "Câmbio", "Crédito"], correct: 1, explanation: "Gestão do orçamento do governo." },
+            { id: 77, category: "BLOCO 7", text: "Swap Cambial:", options: ["Compra dólar", "Venda de proteção cambial pelo BC", "Turismo", "Ação"], correct: 1, explanation: "BC atua no mercado futuro para controlar volatilidade." },
+            { id: 78, category: "BLOCO 7", text: "Juros Compostos:", options: ["Linear", "Exponencial", "Fixo", "Decrescente"], correct: 1, explanation: "Juros sobre juros geram curva exponencial." },
+            { id: 79, category: "BLOCO 7", text: "LC (Letra de Câmbio):", options: ["Moeda", "Título de Financeira", "Ação", "Fundo"], correct: 1, explanation: "Renda fixa emitida por financeiras, com FGC." },
+            { id: 80, category: "BLOCO 7", text: "Mercado Primário:", options: ["Bolsa", "Emissão (IPO)", "Venda entre sócios", "Antigo"], correct: 1, explanation: "O dinheiro vai para o caixa da empresa emissora." },
+            { id: 81, category: "BLOCO 7", text: "Taxa Performance:", options: ["Sempre", "Se superar benchmark", "Se cair", "Na entrada"], correct: 1, explanation: "Prêmio de mérito para o gestor." },
+            { id: 82, category: "BLOCO 7", text: "Tabela Progressiva:", options: ["Tempo", "Salário/Renda", "Fixa", "Isenta"], correct: 1, explanation: "Segue a tabela do IR de salários, compensável na declaração." },
+            { id: 83, category: "BLOCO 7", text: "Resgate 721 dias:", options: ["22.5", "20", "17.5", "15"], correct: 3, explanation: "Alíquota mínima de RF para longo prazo." },
+            { id: 84, category: "BLOCO 7", text: "Correlação -1:", options: ["Andam juntos", "Andam opostos (Hedge)", "Sem relação", "Risco alto"], correct: 1, explanation: "Proteção perfeita (um sobe, o outro desce)." },
+            { id: 85, category: "BLOCO 7", text: "LGPD protege:", options: ["Dinheiro", "Dados pessoais", "Bancos", "Governo"], correct: 1, explanation: "Lei Geral de Proteção de Dados." },
+            { id: 86, category: "BLOCO 7", text: "ESG G significa:", options: ["Global", "Governança", "Geral", "Ganho"], correct: 1, explanation: "Governança Corporativa." },
+            { id: 87, category: "BLOCO 7", text: "FII Renda:", options: ["Tributada", "Isenta", "20%", "15%"], correct: 1, explanation: "Dividendos de FIIs são isentos para PF (regra geral)." },
+            { id: 88, category: "BLOCO 7", text: "Derivativo Hedge:", options: ["Especular", "Proteger", "Alavancar", "Perder"], correct: 1, explanation: "Usado para travar preço e evitar prejuízo." },
+            { id: 89, category: "BLOCO 7", text: "Split (Desdobramento):", options: ["Aumenta preço", "Cai preço, aumenta qtde", "Junta ações", "Paga dividendo"], correct: 1, explanation: "Divide a ação em várias, preço cai proporcionalmente." },
+            { id: 90, category: "BLOCO 7", text: "Previdência Regressiva 2 anos:", options: ["10%", "15%", "35%", "25%"], correct: 2, explanation: "Começa com alíquota punitiva de 35%." }
+        ];
+
+        // --- APP LOGIC (Safe Initialization) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved answers
+            let userAnswers = JSON.parse(localStorage.getItem('simulado90Progress')) || {};
+
+            // Render Nav Links
+            const nav = document.getElementById('nav-links');
+            const mobileMenu = document.getElementById('mobile-menu-items');
+            
+            if (nav && mobileMenu) {
+                let categories = [...new Set(questionsData.map(q => q.category))];
+                
+                const links = categories.map((cat, index) => `
+                    <a href="#cat-${index}" class="block py-2 px-3 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 rounded transition-colors text-left">
+                        ${cat}
+                    </a>
+                `).join('');
+                
+                nav.innerHTML = links;
+                mobileMenu.innerHTML = links;
+            }
+
+            // Render Questions
+            renderQuestions(userAnswers);
+            updateScore(userAnswers);
+        });
+
+        function renderQuestions(userAnswers) {
+            const container = document.getElementById('questions-container');
+            if (!container) return;
+
+            let currentCategory = "";
+            let html = "";
+            let catIndex = -1;
+
+            questionsData.forEach((q) => {
+                // Category Header
+                if (q.category !== currentCategory) {
+                    currentCategory = q.category;
+                    catIndex++;
+                    html += `
+                        <div id="cat-${catIndex}" class="mt-12 mb-6 border-b-2 border-indigo-100 pb-2 scroll-mt-24">
+                            <h3 class="text-xl font-bold text-indigo-800 flex items-center gap-2">
+                                <i data-lucide="layers" class="w-5 h-5"></i> ${currentCategory}
+                            </h3>
+                        </div>
+                    `;
+                }
+
+                const userAnswer = userAnswers[q.id];
+                const isAnswered = userAnswer !== undefined;
+                const isCorrect = isAnswered && userAnswer === q.correct;
+                
+                let feedbackHtml = '';
+                let borderClass = 'border-slate-200 hover:border-indigo-200';
+                let bgClass = 'bg-white';
+
+                if (isAnswered) {
+                    if (isCorrect) {
+                        borderClass = 'border-green-400';
+                        bgClass = 'bg-green-50/40';
+                        feedbackHtml = `
+                            <div class="mt-4 p-4 bg-green-100 rounded-lg border border-green-200 text-sm fade-in-up">
+                                <div class="font-bold text-green-700 flex items-center gap-2 mb-1">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i> Resposta Correta!
+                                </div>
+                                <div class="text-green-800 leading-relaxed">${q.explanation}</div>
+                            </div>`;
+                    } else {
+                        borderClass = 'border-red-400';
+                        bgClass = 'bg-red-50/40';
+                        feedbackHtml = `
+                            <div class="mt-4 p-4 bg-red-100 rounded-lg border border-red-200 text-sm fade-in-up">
+                                <div class="font-bold text-red-700 flex items-center gap-2 mb-1">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i> Incorreto.
+                                </div>
+                                <div class="text-red-800 mb-2">A resposta correta é: <strong>${['A','B','C','D'][q.correct]}</strong></div>
+                                <div class="text-slate-700 bg-white/50 p-2 rounded border border-red-200 leading-relaxed"><strong>Explicação:</strong> ${q.explanation}</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += `
+                    <div class="p-6 rounded-xl border-2 shadow-sm ${borderClass} ${bgClass} transition-all duration-300 relative group">
+                        <div class="flex items-start gap-3 mb-4">
+                            <span class="bg-indigo-600 text-white font-bold w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0 text-sm shadow-sm">${q.id}</span>
+                            <h3 class="text-lg font-medium text-slate-800 leading-snug">${q.text}</h3>
+                        </div>
+                        
+                        <div class="space-y-2 ml-0 md:ml-11">
+                            ${q.options.map((opt, optIdx) => {
+                                const isSelected = userAnswer === optIdx;
+                                
+                                let optionClass = "p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer flex items-center gap-3 transition-colors select-none";
+                                
+                                if (isAnswered) {
+                                    const isThisCorrect = q.correct === optIdx;
+                                    if (isSelected && isCorrect) optionClass = "p-3 rounded-lg border-2 border-green-500 bg-green-100 font-medium flex items-center gap-3 shadow-sm";
+                                    else if (isSelected && !isCorrect) optionClass = "p-3 rounded-lg border-2 border-red-500 bg-red-100 flex items-center gap-3 shadow-sm";
+                                    else if (!isSelected && isThisCorrect && !isCorrect) optionClass = "p-3 rounded-lg border border-green-500 bg-green-50 flex items-center gap-3 opacity-70"; 
+                                    else optionClass = "p-3 rounded-lg border border-slate-100 opacity-40 flex items-center gap-3 pointer-events-none grayscale";
+                                }
+
+                                return `
+                                    <div class="${optionClass}" onclick="handleAnswer(${q.id}, ${optIdx})">
+                                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? (isCorrect ? 'border-green-600 bg-green-600' : 'border-red-600 bg-red-600') : ''}">
+                                            <span class="text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-400'}">${['A','B','C','D'][optIdx]}</span>
+                                        </div>
+                                        <span class="text-sm text-slate-700 flex-1">${opt}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="ml-0 md:ml-11">
+                            ${feedbackHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function handleAnswer(qId, optIdx) {
+            let userAnswers = JSON.parse(localStorage.getItem('simulado90Progress')) || {};
+            if (userAnswers[qId] !== undefined) return; // Locked if answered
+            
+            userAnswers[qId] = optIdx;
+            localStorage.setItem('simulado90Progress', JSON.stringify(userAnswers));
+            
+            renderQuestions(userAnswers);
+            updateScore(userAnswers);
+        }
+
+        function updateScore(userAnswers) {
+            const answered = Object.keys(userAnswers).length;
+            const correct = Object.keys(userAnswers).filter(id => {
+                const q = questionsData.find(q => q.id == id);
+                return q && userAnswers[id] === q.correct;
+            }).length;
+
+            const progressEl = document.getElementById('progress-count');
+            const scoreEl = document.getElementById('score-count');
+            
+            if(progressEl) progressEl.innerText = answered;
+            if(scoreEl) scoreEl.innerText = correct;
+        }
+
+        function resetSimulado() {
+            if(confirm("Deseja apagar todo o progresso e começar do zero?")) {
+                localStorage.removeItem('simulado90Progress');
+                renderQuestions({});
+                updateScore({});
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if(menu) menu.classList.toggle('hidden');
+        }
+
+    </script>
+</body>
+</html>
