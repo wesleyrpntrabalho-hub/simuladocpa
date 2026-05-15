@@ -3,364 +3,980 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulado ANBIMA - 90 Questões</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Simulado CPA Interativo</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* Smooth scrolling */
-        html { scroll-behavior: smooth; }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        ::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
-
-        /* Animation for feedback */
-        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden-screen { display: none !important; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:hover:not(:disabled) { transform: scale(1.01); }
     </style>
 </head>
-<body class="bg-gray-50 text-slate-800">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Top Bar Fixa (Progresso e Score) -->
-    <div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm h-16 flex items-center px-4 md:px-8 justify-between">
-        <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 text-white p-2 rounded-lg">
-                <i data-lucide="award" class="w-5 h-5"></i>
+    <!-- Header -->
+    <header class="bg-green-600 text-white shadow-md p-4 sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2 cursor-pointer" onclick="goHome()">
+                <i class="fas fa-graduation-cap"></i> Simulado CPA
+            </h1>
+            <div id="header-actions" class="hidden flex gap-2">
+                <button onclick="pauseQuiz()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-semibold transition text-sm flex items-center gap-2" title="Pausar Simulado">
+                    <i class="fas fa-pause"></i> <span class="hidden sm:inline">Pausar</span>
+                </button>
+                <button onclick="goHome()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-semibold transition text-sm flex items-center gap-2" title="Voltar ao Início">
+                    <i class="fas fa-home"></i> <span class="hidden sm:inline">Home</span>
+                </button>
             </div>
-            <h1 class="font-bold text-lg text-slate-800 hidden md:block">Simulado ANBIMA</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- Home Screen -->
+        <div id="screen-home" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 text-center fade-in">
+            <div class="mb-6 text-green-600 text-6xl">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-4 text-slate-800">Simulado CPA Completo</h2>
+            <p class="text-slate-600 mb-8">Teste seus conhecimentos com <strong>TODAS</strong> as questões baseadas nas provas e simulados oficiais da ANBIMA. O seu progresso será salvo automaticamente.</p>
+            
+            <div class="flex flex-col gap-4 max-w-md mx-auto">
+                <button id="btn-continue" onclick="resumeQuiz()" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> Continuar Simulado Salvo
+                </button>
+                <button onclick="startQuiz(false)" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fas fa-list-ol"></i> Iniciar na Ordem Original
+                </button>
+                <button onclick="startQuiz(true)" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fas fa-random"></i> Embaralhar Tudo (Questões e Alternativas)
+                </button>
+            </div>
         </div>
 
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-xs text-slate-500 uppercase font-semibold">Progresso</p>
-                <p class="text-sm font-bold text-indigo-600"><span id="progress-count">0</span> / 90</p>
+        <!-- Quiz Screen -->
+        <div id="screen-quiz" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 md:p-8 fade-in hidden-screen">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <span id="question-counter" class="text-lg font-bold text-slate-500">Questão 1 de X</span>
+                <span id="question-difficulty" class="px-3 py-1 rounded-full text-sm font-semibold bg-slate-200 text-slate-700">Médio</span>
             </div>
-            <div class="text-right">
-                <p class="text-xs text-slate-500 uppercase font-semibold">Acertos</p>
-                <p class="text-sm font-bold text-green-600" id="score-count">0</p>
+            
+            <div id="question-context" class="mb-6 text-sm text-slate-700 bg-slate-50 p-5 rounded-lg border border-slate-200 hidden whitespace-pre-line"></div>
+            
+            <h3 id="question-text" class="text-xl font-semibold mb-6 text-slate-800"></h3>
+            
+            <div id="options-container" class="flex flex-col gap-3 mb-8">
+                <!-- Options injected via JS -->
             </div>
-            <button onclick="resetSimulado()" class="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Reiniciar Simulado">
-                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+
+            <div id="feedback-container" class="hidden p-5 rounded-xl mb-6 fade-in border-l-4">
+                <h4 id="feedback-title" class="font-bold text-lg mb-2 flex items-center gap-2"></h4>
+                <p id="feedback-text" class="text-slate-700 mt-2"></p>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="btn-next" onclick="nextQuestion()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition">
+                    Próxima Questão <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="screen-result" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 text-center fade-in hidden-screen">
+            <div class="mb-6 text-yellow-500 text-6xl">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-4 text-slate-800">Simulado Concluído!</h2>
+            <p class="text-xl text-slate-600 mb-8">Você acertou <span id="score-correct" class="font-bold text-green-600">0</span> de <span id="score-total" class="font-bold">0</span> questões.</p>
+            
+            <div class="w-full bg-slate-200 rounded-full h-4 mb-8">
+                <div id="score-bar" class="bg-green-600 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+
+            <button onclick="resetQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition">
+                Voltar ao Início
             </button>
         </div>
-    </div>
 
-    <div class="flex pt-16 min-h-screen">
-        
-        <!-- Sidebar de Navegação (Desktop) -->
-        <aside class="hidden lg:block w-72 bg-white border-r border-gray-200 fixed bottom-0 top-16 overflow-y-auto p-6">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Navegação Rápida</h3>
-            <nav class="space-y-1" id="nav-links">
-                <!-- Links gerados via JS -->
-            </nav>
-        </aside>
-
-        <!-- Conteúdo Principal -->
-        <main class="flex-1 lg:ml-72 p-4 md:p-8 max-w-4xl mx-auto">
-            
-            <div class="mb-8 mt-4">
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">Simulado Completo</h2>
-                <p class="text-slate-600">
-                    Responda as 90 questões abaixo. O sistema salva seu progresso automaticamente. 
-                    Clique na alternativa para ver a correção e explicação imediata.
-                </p>
+        <!-- Pause Screen -->
+        <div id="screen-pause" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 text-center fade-in hidden-screen">
+            <div class="mb-6 text-blue-500 text-6xl">
+                <i class="fas fa-pause-circle"></i>
             </div>
+            <h2 class="text-3xl font-bold mb-4 text-slate-800">Simulado Pausado</h2>
+            <p class="text-slate-600 mb-8">Seu progresso foi salvo automaticamente no seu navegador. Você pode fechar a página e voltar quando quiser.</p>
+            <button onclick="resumeQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition">
+                Continuar Agora
+            </button>
+        </div>
+    </main>
 
-            <!-- Container das Questões -->
-            <div id="questions-container" class="space-y-12 pb-20">
-                <!-- Questões injetadas via JS -->
-            </div>
-
-        </main>
-    </div>
-
-    <!-- Script Principal -->
     <script>
-        // --- BANCO DE DADOS DAS 90 QUESTÕES ---
-        const questionsData = [
-            // BLOCO 1 (10 Questões)
-            { id: 1, category: "BLOCO 1 — Ética, Conduta e Adequação", text: "O princípio da lealdade no relacionamento com o cliente exige que o profissional:", options: ["Priorize os interesses da instituição", "Atue sempre em benefício do cliente, mesmo quando houver conflito", "Ofereça apenas produtos conservadores", "Execute ordens sem questionamento"], correct: 1, explanation: "O Princípio da Lealdade (Dever Fiduciário) exige colocar os interesses do cliente acima dos da instituição ou do próprio profissional." },
-            { id: 2, category: "BLOCO 1", text: "O dever de adequação tem como principal objetivo:", options: ["Reduzir riscos legais da instituição", "Garantir que o produto seja compatível com o perfil e objetivos do cliente", "Aumentar a rentabilidade da carteira", "Padronizar investimentos"], correct: 1, explanation: "Adequação (Suitability) serve para proteger o investidor, garantindo que ele não invista em algo que não entende ou que tenha riscos superiores à sua tolerância." },
-            { id: 3, category: "BLOCO 1", text: "É considerada prática vedada ao profissional certificado ANBIMA:", options: ["Atualizar o cadastro do cliente", "Prometer rentabilidade futura", "Informar riscos do produto", "Registrar o atendimento"], correct: 1, explanation: "É estritamente proibido garantir ou prometer rentabilidade futura em produtos de risco (Renda Variável, Fundos), pois o retorno é incerto." },
-            { id: 4, category: "BLOCO 1", text: "(CASE) Um cliente classificado como conservador solicita investir em um produto de alto risco, afirmando estar ciente das possíveis perdas. O profissional deve:", options: ["Executar a ordem imediatamente", "Recusar o investimento", "Orientar sobre os riscos, registrar a ciência do cliente e avaliar a adequação", "Alterar o perfil para agressivo"], correct: 2, explanation: "O cliente pode investir fora do perfil (desenquadramento), desde que seja alertado sobre o risco e a inadequação, e dê seu aceite formal (Termo de Desenquadramento)." },
-            { id: 5, category: "BLOCO 1", text: "A transparência no atendimento pressupõe:", options: ["Comunicação apenas quando solicitada", "Clareza sobre riscos, custos e características dos produtos", "Linguagem técnica obrigatória", "Foco exclusivo na rentabilidade"], correct: 1, explanation: "A transparência exige que todas as informações relevantes (vantagens, riscos, custos, liquidez) sejam passadas de forma clara e compreensível, sem omissões que induzam a erro." },
-            { id: 6, category: "BLOCO 1", text: "O conflito de interesses ocorre quando:", options: ["O cliente assume risco elevado", "O profissional tem interesse próprio que pode afetar sua recomendação", "O mercado apresenta volatilidade", "O produto possui taxa elevada"], correct: 1, explanation: "Quando o ganho do profissional (ex: meta, comissão) compete com o melhor interesse do cliente." },
-            { id: 7, category: "BLOCO 1", text: "O registro do atendimento é importante porque:", options: ["Substitui o questionário de perfil", "Documenta as orientações e decisões tomadas", "Serve apenas para auditoria interna", "É facultativo"], correct: 1, explanation: "O registro comprova que o profissional cumpriu seu dever de informação e suitability, servindo de proteção para ambas as partes." },
-            { id: 8, category: "BLOCO 1", text: "O profissional deve recusar uma recomendação quando:", options: ["O cliente insiste", "O produto é incompatível com o perfil e objetivos do investidor", "A taxa de administração é alta", "O mercado está favorável"], correct: 1, explanation: "Se o produto não é adequado (suitability), o profissional não deve RECOMENDAR. Se o cliente insistir (ordem não solicitada), aí aplica-se o desenquadramento." },
-            { id: 9, category: "BLOCO 1", text: "É dever do profissional certificado:", options: ["Garantir retorno mínimo", "Atuar com diligência e boa-fé", "Prometer segurança absoluta", "Eliminar riscos"], correct: 1, explanation: "Diligência (cuidado, zelo) e Boa-fé são os pilares da conduta ética. Garantir retorno ou eliminar risco é impossível no mercado." },
-            { id: 10, category: "BLOCO 1", text: "(CASE) Durante o atendimento, o cliente demonstra não compreender totalmente o funcionamento do produto indicado. O profissional deve:", options: ["Prosseguir para não perder a venda", "Simplificar a explicação e confirmar o entendimento", "Solicitar assinatura imediata", "Encerrar o atendimento"], correct: 1, explanation: "O dever de informação exige que o cliente COMPREENDA. O profissional deve ajustar a linguagem até ter certeza que o cliente entendeu o que está contratando." },
+        // --- BANCO DE QUESTÕES COMPLETO ---
+        const db = [
+            // --- DOCUMENTO 1 (CPA_26-03-12_262_87926.pdf) ---
+            {c:"Jorge, estagiário em uma cooperativa de crédito, consulta Paulo, profissional CPA, para entender a diferença entre uma cooperativa de crédito e um banco cooperativo. Paulo explica que os papéis de ambas são bastante distintos...", q:"Para deixar mais explícita esta diferenciação, Paulo poderia explicar que a cooperativa:", d:"Média", o:[
+                {t:"atende o cooperado (capta/empresta) e o banco cooperativo provê infraestrutura, liquidez e acesso a mercados.", v:true, e:"A cooperativa atua na ponta com o cooperado, enquanto o banco cooperativo oferece suporte estrutural."},
+                {t:"atua como representante do banco cooperativo e este realiza a captação e a concessão de crédito.", v:false, e:"A cooperativa não é apenas representante, ela capta e empresta diretamente."},
+                {t:"concentra serviços financeiros para pessoas jurídicas e o banco cooperativo atua com pessoas físicas.", v:false, e:"Não há essa distinção jurídica/física."},
+                {t:"realiza operações de crédito e o banco cooperativo atua como intermediário direto no mercado financeiro.", v:false, e:"O banco cooperativo atua como provedor e acesso ao mercado para as cooperativas."}
+            ]},
+            {c:"Durante o atendimento financeiro, Tereza, servidora pública, comenta que está avaliando participar de um plano de previdência complementar com benefício fiscal. Ela ouviu falar do PGBL...", q:"Renata explica à cliente que esta modalidade (PGBL) é mais vantajosa quando a pessoa:", d:"Média", o:[
+                {t:"tem renda tributável e contribui ao regime oficial (INSS/RPPS), usando o plano para diferir até 12% da renda, via declaração completa de IR, e tributar o total no resgate/benefício.", v:true, e:"O PGBL permite diferir IR deduzindo até 12% da renda bruta na declaração completa, tributando o total no resgate."},
+                {t:"deseja que a tributação ocorra sobre os rendimentos no resgate, buscando aproveitar o aporte sem que a base seja o valor total acumulado.", v:false, e:"Isso descreve o VGBL."},
+                {t:"não possui renda tributável no ano e pretende usar o plano para reduzir imposto futuro, independentemente de contribuir para o regime oficial.", v:false, e:"O PGBL exige renda tributável e contribuição oficial."},
+                {t:"atua como autônoma sem contribuição ao regime oficial e pretende usar o plano visando benefício fiscal.", v:false, e:"É obrigatório contribuir para a previdência oficial."}
+            ]},
+            {c:"Durante uma palestra, Marina foi questionada sobre ações do Banco Central e mudanças nas condições de crédito. Os alunos queriam entender o objetivo dessas medidas no mercado monetário.", q:"Diante dessa dúvida, Marina explicou que essas medidas têm como objetivo:", d:"Média", o:[
+                {t:"ajustar a quantidade de moeda no sistema, modulando a liquidez e orientando as taxas de juros de curto prazo.", v:true, e:"As operações de mercado aberto controlam a liquidez para gerir a Selic."},
+                {t:"fixar os juros de longo prazo e os preços do crédito, adotando intervenção direta nos contratos privados.", v:false, e:"O BC atua nos juros curtos, não fixa juros longos nem contratos diretos."},
+                {t:"assegurar a expansão contínua do crédito por metas de volume, a fim de garantir crescimento econômico.", v:false, e:"O foco principal é controle da inflação e estabilidade, não expansão a qualquer custo."},
+                {t:"eliminar a volatilidade diária dos mercados financeiros por operações que neutralizam choques, sem alterar os juros.", v:false, e:"O BC altera juros sim (Selic)."}
+            ]},
+            {c:"Durante a divulgação de novas projeções fiscais, analistas destacaram o aumento das despesas primárias e reacenderam o debate sobre a sustentabilidade das contas públicas.", q:"Nesse cenário, o profissional CPA deve entender que a relação central entre as variáveis apresentadas é que:", d:"Fácil", o:[
+                {t:"o desequilíbrio fiscal eleva o risco-país, deteriora as expectativas de inflação e pressiona as taxas de juros, que tendem a crescer.", v:true, e:"Mais gastos geram medo de inflação/calote, exigindo juros mais altos para atrair investidores."},
+                {t:"o aumento das despesas públicas estimula permanentemente a atividade econômica, independentemente da origem do financiamento.", v:false, e:"Se financiado por dívida descontrolada, trava a economia."},
+                {t:"o déficit fiscal é compensado automaticamente pela política monetária, mantendo neutros os efeitos sobre inflação e juros.", v:false, e:"Não é compensado automaticamente; ele pressiona os juros para cima."},
+                {t:"a expansão do gasto público gera, por si só, equilíbrio entre arrecadação e consumo agregado no longo prazo.", v:false, e:"Gera desequilíbrio se não houver arrecadação compatível."}
+            ]},
+            {c:"Marcelo, profissional CPA, atende cliente conservador a moderado com Tesouro Direto, fundos de renda fixa e multimercado. O governo decidiu não promover ajuste fiscal no curto prazo.", q:"Quais as consequências esperadas desse novo cenário fiscal?", d:"Média", o:[
+                {t:"elevar a percepção de risco, pressionar inflação e juros e provocar desvalorização dos títulos de renda fixa já emitidos, afetando negativamente o desempenho de parte da carteira.", v:true, e:"Falta de ajuste fiscal eleva juros, causando marcação a mercado negativa nos títulos pré/inflação da carteira."},
+                {t:"estimular o crescimento econômico sem impacto relevante sobre inflação e juros, favorecendo o desempenho de títulos públicos, de crédito privado e multimercado.", v:false, e:"Haverá impacto em inflação e juros."},
+                {t:"reduzir a necessidade de financiamento do governo, aumentar a confiança dos investidores pelo aumento dos juros e contribuir para a valorização dos títulos públicos já emitidos.", v:false, e:"Aumenta a necessidade de financiamento e desvaloriza títulos."},
+                {t:"produzir efeitos restritos às contas públicas, sem influência relevante sobre taxas de juros ou sobre os preços de ativos financeiros.", v:false, e:"Afeta diretamente o mercado financeiro inteiro."}
+            ]},
+            {c:"Ação de educação financeira: Como o endividamento público se relaciona com juros e inflação?", q:"Luís explicou de forma objetiva que:", d:"Fácil", o:[
+                {t:"o equilíbrio fiscal reduz o risco e as pressões sobre juros e inflação, criando um ambiente mais favorável ao investimento produtivo.", v:true, e:"Contas públicas controladas evitam alta de juros e seguram a inflação."},
+                {t:"o controle do endividamento público tende a preservar a confiança dos investidores, embora sem efeito direto sobre as condições de crédito privado.", v:false, e:"Tem efeito direto no crédito privado (a Selic é a base)."},
+                {t:"o aumento das despesas públicas pode estimular a economia no curto prazo, ainda que eleve os riscos fiscais no médio e longo prazo.", v:false, e:"A alternativa A explica melhor a relação central juros/inflação."},
+                {t:"a ampliação do gasto governamental reduz momentaneamente o desemprego, mas compromete a estabilidade macroeconômica futura.", v:false, e:"Foge da relação central questionada (juros e inflação)."}
+            ]},
+            {c:"Carolina, profissional certificada, explica a jovens empreendedores sobre a Lei de Responsabilidade Fiscal (LRF) e o teto de gastos.", q:"No resumo de Carolina o efeito mais provável dessas medidas sobre as contas públicas é:", d:"Média", o:[
+                {t:"equilibrar contas públicas ao unir contenção de despesas, limites de dívida e controle da expansão dos gastos primários.", v:true, e:"A LRF e o Teto visam justamente controlar gastos, dívida e equilibrar as contas."},
+                {t:"manter disciplina fiscal ao limitar o avanço real das despesas, alinhando gastos à inflação.", v:false, e:"A A é mais completa ao incluir os limites de dívida da LRF."},
+                {t:"garantir previsibilidade ao exigir limites de endividamento e maior transparência na execução orçamentária.", v:false, e:"A A engloba os mecanismos citados de forma mais precisa para a questão."},
+                {t:"sustentar confiança ao reforçar regras de alocação de recursos e parâmetros de crescimento compatíveis com arrecadação.", v:false, e:"O teto de gastos atua na despesa, independentemente do crescimento da arrecadação."}
+            ]},
+            {c:"Juliana explica a cliente sobre operação compromissada do BC para reduzir a quantidade de moeda em circulação e conter juros de curto prazo.", q:"A operação realizada pelo Banco Central seria:", d:"Média", o:[
+                {t:"uma venda de títulos públicos com compromisso de recompra, em data e preço pré-pactuados.", v:true, e:"Ao vender o título, o BC tira dinheiro do mercado (reduz liquidez). O compromisso de recompra define a operação."},
+                {t:"uma compra de títulos públicos com compromisso de revenda, em data e preço pré-pactuados.", v:false, e:"Comprar injetaria dinheiro no mercado, o que não atinge o objetivo citado."},
+                {t:"um empréstimo de títulos públicos com compromisso de pagamento de juros...", v:false, e:"A operação é compra/venda (compromissada)."},
+                {t:"uma venda de títulos públicos com opção compra...", v:false, e:"É compromisso, não opção."}
+            ]},
+            {c:"Roberto atende José, que leu sobre fundos de uma instituição que quebrou. Roberto cita o Código de Regulação e Melhores Práticas da ANBIMA.", q:"Um exemplo de norma presente no Código é:", d:"Difícil", o:[
+                {t:"definir parâmetros de conduta que asseguram concorrência leal, padronização de procedimentos e maior qualidade das informações prestadas sobre fundos de investimento.", v:true, e:"O código busca exatamente essa tríade: lealdade, padrão e transparência/qualidade."},
+                {t:"reforçar principalmente os padrões fiduciários e a ética dos gestores, deixando a padronização de informações e a publicidade a critério de cada instituição.", v:false, e:"O código OBRIGA a padronização, não deixa a critério."},
+                {t:"orientar governança e compliance para elevar a integridade, sem abranger concorrência leal...", v:false, e:"Abrange concorrência leal sim."},
+                {t:"padronizar comunicação e divulgação para dar clareza ao investidor, sem cobrir conduta de mercado...", v:false, e:"Cobre conduta de mercado sim."}
+            ]},
+            {c:"Reunião sobre riscos no mercado internacional e segurança das instituições financeiras no Brasil.", q:"O profissional certificado ANBIMA deve explicar aos participantes que o Bacen:", d:"Média", o:[
+                {t:"adota normas prudenciais, regula a liquidez, promove medidas de estabilidade sistêmica e sustenta a confiança no sistema.", v:true, e:"O Banco Central regula os bancos via Basileia e atua como emprestador de última instância (liquidez)."},
+                {t:"conduz políticas de crédito setoriais, definindo volumes e condições de financiamento de acordo com objetivos do governo.", v:false, e:"O BC atua de forma macro, as políticas setoriais são, historicamente, de bancos de fomento (BNDES)."},
+                {t:"padroniza a remuneração de ativos, estabelecendo retornos equivalentes para títulos negociados no mercado secundário.", v:false, e:"O mercado define as taxas secundárias."},
+                {t:"centraliza a intermediação financeira, assumindo a concessão de crédito e investimentos de longo prazo no lugar dos bancos comerciais.", v:false, e:"O BC não empresta ao público."}
+            ]},
+            {c:"Empresa de tecnologia faz IPO. Demanda superou a oferta, resultando em rateio. Previsão de lote suplementar.", q:"Considerando a dinâmica de formação de preço no bookbuilding, conclui-se que:", d:"Difícil", o:[
+                {t:"a demanda elevada no IPO tende a pressionar o preço na abertura do mercado secundário, em que a liquidez real se estabelece com a negociação entre investidores.", v:true, e:"Muitos ficaram de fora no rateio e vão comprar no mercado secundário, elevando o preço inicial."},
+                {t:"o preço da ação se manterá estável após a listagem, pois o lote suplementar é usado ativamente para impedir a volatilidade e fixar a cotação.", v:false, e:"Lote suplementar ameniza, mas não 'fixa' preço contra o mercado."},
+                {t:"a liquidez atinge seu pico durante o IPO, devido ao grande volume ofertado pela empresa, tornando-se mais restrita no secundário.", v:false, e:"O IPO é mercado primário. A liquidez real e constante é no secundário."},
+                {t:"o rateio na oferta primária é pouco relevante para o preço no secundário...", v:false, e:"É muito relevante como indicador de demanda."}
+            ]},
+            {c:"Joel consulta o regulamento de um fundo: 'as estratégias podem resultar em perdas superiores ao capital aplicado...'. O investidor precisaria assinar um termo.", q:"O termo a que Joel se referiu é o:", d:"Média", o:[
+                {t:"termo de adesão e ciência de risco, que formaliza o conhecimento dos cotistas sobre a possibilidade de perdas superiores ao capital aplicado.", v:true, e:"A CVM exige ciência expressa para fundos alavancados que podem exigir aporte adicional."},
+                {t:"termo de ciência e assunção de responsabilidade patrimonial ilimitada...", v:false, e:"Não é esse o nome técnico do documento (o correto na CVM 175 é Termo de Adesão e Ciência de Risco)."},
+                {t:"termo de ciência e confirmação de interesse...", v:false, e:"Nome incorreto."},
+                {t:"termo de autorização para movimentação de recursos...", v:false, e:"Nome incorreto."}
+            ]},
+            {c:"Chat com Antônio (63 anos). Resgate de 80 mil. Duas LCAs: CDI (13 meses) e IPCA (25 meses).\nAntônio: 'Deixa eu ver se entendi: a do IPCA me garante a inflação e a do CDI depende de como o Banco Central mexer nos juros?'", q:"Selecione a alternativa que melhor concilia a informação correta a um atendimento adequado:", d:"Fácil", o:[
+                {t:"Isso. Na do IPCA a proteção é garantida. Na do CDI depende dos juros acompanharem a inflação.", v:false, e:"Alternativa aceitável no chat, mas a B é mais técnica e precisa sobre o Bacen."},
+                {t:"Exato. A do IPCA garante a inflação, a do CDI depende da política monetária do Banco Central.", v:true, e:"A do IPCA protege o poder de compra e a do CDI segue a Selic (política monetária). Resposta direta e correta."},
+                {t:"Mais ou menos. As duas te protegem contra a inflação...", v:false, e:"O CDI não tem garantia direta de proteger da inflação sempre."},
+                {t:"Não é bem assim. O CDI sempre acompanha a inflação porque o Banco Central ajusta os juros.", v:false, e:"O BC tenta ajustar, mas em alguns momentos o juro real pode ficar negativo (CDI perde pra inflação)."}
+            ]},
+            {c:"Chat com Antônio. Ele quer resgatar e pergunta qual rende mais agora.", q:"Antônio: 'Tá, mas na prática, quanto cada uma tá rendendo? Queria ver os números antes de decidir.'", d:"Fácil", o:[
+                {t:"A do CDI a 92% dá uns 13,8% ao ano. A do IPCA + 5,5% dá uns 9,8% hoje.", v:false, e:"Cálculo base para fins de exemplo no chat, mas a opção mais direta ao ponto no atendimento é focar no cenário atual."},
+                {t:"Com os juros atuais, a do CDI tá rendendo mais que a do IPCA no momento.", v:true, e:"Com CDI a 15% e IPCA a 4%, o CDI ganha facilmente (13,8% vs 9,5%)."},
+                {t:"A do CDI dá uns 13,7% e a do IPCA uns 9,8% ao ano. Essa diferença é pelo cenário atual.", v:false, e:"Valores parecidos, mas a recomendação do simulado aponta para a clareza da mensagem C."},
+                {t:"Com a Selic nesse patamar, a do CDI rende mais, ainda mais pensando no curto prazo dela.", v:false, e:"Misturou prazo da LCA com o rendimento nominal."}
+            ]},
+            {c:"Chat com Antônio.", q:"Se o banco não apresentar taxa de corretagem para a LCA solicitada, o valor bruto a resgatar para atingir o líquido solicitado (80 mil) seria de:", d:"Fácil", o:[
+                {t:"R$ 80.000", v:true, e:"LCAs são isentas de Imposto de Renda para Pessoas Físicas. Logo, valor Bruto = Líquido."},
+                {t:"R$ 82.000", v:false, e:"Haveria IR se fosse CDB."},
+                {t:"R$ 82.300", v:false, e:"Incorreto, isento de IR."},
+                {t:"R$ 84.200", v:false, e:"Incorreto, isento de IR."}
+            ]},
+            {c:"Chat com Antônio.", q:"Se ambas as LCAs tivessem carência mínima regulamentada e tivessem sido contratadas juntas há 7 meses, o resgate solicitado:", d:"Média", o:[
+                {t:"ainda seria viável.", v:true, e:"LCAs sem atualização por índice de preços têm carência de 90 dias. Indexadas ao IPCA podem ter carência maior (12 ou 36 meses). Mas a do CDI com 7 meses já estaria livre de carência (90 dias)."},
+                {t:"seria viável, mas mudaria de tributação no resgate.", v:false, e:"LCA é sempre isenta de IR para PF."},
+                {t:"seria viável apenas se o cliente topasse resgatar da outra LCA.", v:false, e:"Ele pode resgatar a do CDI livremente."},
+                {t:"não seria mais viável.", v:false, e:"A do CDI estaria viável."}
+            ]},
+            {c:"Tânia é acionista e recebeu um comunicado de que cada ação passará a representar dez novas ações (desdobramento).", q:"A informação correta a ser fornecida por Luísa é de que:", d:"Fácil", o:[
+                {t:"haverá aumento do número de ações no capital social da empresa. A participação de Tânia e o valor do capital social ficarão inalterados.", v:true, e:"Em um desdobramento (split), o número de ações aumenta, o preço cai na mesma proporção. O capital social e a participação percentual do acionista não mudam."},
+                {t:"não haverá alteração do número de ações...", v:false, e:"Haverá alteração do número de ações."},
+                {t:"A participação de Tânia na Nova Era e o valor do capital social da empresa serão reduzidos.", v:false, e:"Eles ficam inalterados."},
+                {t:"a participação de Tânia será reduzida e o valor do capital social da Nova Era será aumentado.", v:false, e:"Ambos inalterados."}
+            ]},
+            {c:"Pedro quer investir em flats num 'Fundo de Investimento Plaza S/C' via contrato de mútuo. Denise orienta sobre a regularidade.", q:"A orientação correta de Denise é que ele deve recorrer:", d:"Média", o:[
+                {t:"à Comissão de Valores Mobiliários (CVM).", v:true, e:"Fundos de Investimento (neste caso, com características de FII) são regulados e fiscalizados pela CVM."},
+                {t:"ao Banco Central.", v:false, e:"O BC foca na estabilidade do sistema e instituições financeiras, não no registro de Fundos de Investimento/Valores Mobiliários."},
+                {t:"à Bolsa B3.", v:false, e:"A B3 é balcão/bolsa, não autarquia reguladora para verificar regularidade de registros."},
+                {t:"à Junta Comercial do estado.", v:false, e:"Apenas registra as empresas, não os fundos como valores mobiliários ofertados ao público."}
+            ]},
+            {c:"Teresa investiu em fundo de crédito privado e decepcionou-se. Raquel explicou a vantagem da diversificação.", q:"Neste caso, Raquel poderia explicar este benefício como uma forma de:", d:"Média", o:[
+                {t:"reduzir o risco de perdas de crédito decorrentes do não pagamento de emissores individuais.", v:true, e:"Comprar um título expõe 100% ao risco daquela empresa. Um fundo com 50 debêntures dilui muito esse risco (risco não-sistemático)."},
+                {t:"assegurar retornos superiores ao fundo...", v:false, e:"Diversificação não assegura retorno superior, apenas mitiga risco específico."},
+                {t:"reduzir custos de administração e gerenciamento do fundo.", v:false, e:"A diversificação, na verdade, aumenta a complexidade de gestão, não necessariamente reduz custos."},
+                {t:"permitir liquidez imediata semelhante aos fundos de renda fixa de alta liquidez", v:false, e:"Fundo de crédito privado costuma ter prazos maiores (D+30, D+60)."}
+            ]},
+            {c:"Helena perguntou como a regulação recente da CVM garante a proteção dos cotistas. Paulo citou que perdas em uma classe de fundo não afetam outra classe.", q:"Paulo explica que esse caso está relacionado à:", d:"Média", o:[
+                {t:"segregação patrimonial.", v:true, e:"A Resolução CVM 175 introduziu a segregação patrimonial entre classes de um mesmo fundo (cada classe é independente)."},
+                {t:"unificação contábil dos fundos.", v:false, e:"O princípio é o inverso: separar o patrimônio."},
+                {t:"compensação de resultados.", v:false, e:"Não há compensação de resultados entre classes de fundos distintos para abater perdas diretamente."},
+                {t:"integração operacional entre classes.", v:false, e:"Segregação é o termo técnico para isolar os riscos."}
+            ]},
+            {c:"César, engenheiro de empresa privada, quer previdência e pergunta sobre o PGBL.", q:"Rogério esclarece que esse plano:", d:"Fácil", o:[
+                {t:"é voltado para quem declara o IR no modelo completo e busca deduzir contribuições até o limite legal anual.", v:true, e:"PGBL é ideal para declaração completa, pois deduz até 12% da renda bruta anual tributável."},
+                {t:"é isento de imposto no resgate, pois a tributação ocorre durante o período de acumulação.", v:false, e:"É tributado no resgate sobre o valor TOTAL."},
+                {t:"é indicado para quem utiliza o modelo simplificado de IR...", v:false, e:"Modelo simplificado é para VGBL."},
+                {t:"é destinado a empregados de empresas patrocinadoras...", v:false, e:"Qualquer pessoa física pode abrir um PGBL."}
+            ]},
+            {c:"Beatriz, dentista, pró-labore mensal de 1 salário mínimo. Tem um plano VGBL.", q:"João explica que o plano de Beatriz é adequado pois:", d:"Fácil", o:[
+                {t:"é voltado para quem declara o IR no modelo simplificado e tributa apenas os rendimentos no resgate.", v:true, e:"VGBL é para quem usa declaração simplificada ou já estourou o limite de 12% do PGBL. O IR incide SÓ na rentabilidade."},
+                {t:"é voltado para quem busca deduzir até 12% da renda...", v:false, e:"Isso é PGBL."},
+                {t:"é voltado para quem participa de planos corporativos...", v:false, e:"Pode ser feito em planos abertos individuais."},
+                {t:"é voltado para quem declara IR pelo modelo simplificado e tributa o valor total resgatado...", v:false, e:"VGBL tributa apenas os RENDIMENTOS, não o valor total."}
+            ]},
+            {c:"Mauro vai se aposentar. Deseja renda mensal por tempo determinado, querendo deixar o restante como herança.", q:"Daniel esclareceu que existe uma modalidade em que o pagamento é:", d:"Difícil", o:[
+                {t:"fixado por prazo determinado, com continuidade ao(s) beneficiário(s) até o fim do período em caso de falecimento do titular.", v:true, e:"A Renda Mensal por Prazo Certo garante o pagamento pelo prazo estipulado; se o titular falecer, vai para os beneficiários até o fim do prazo."},
+                {t:"vitalício condicionado à expectativa de vida, sem reversão...", v:false, e:"Ele quer herança, essa modalidade extingue o saldo na morte."},
+                {t:"variável, vinculado ao rendimento da reserva, e encerrado automaticamente...", v:false, e:"Ele quer que os filhos recebam algo (herança)."},
+                {t:"garantido até o falecimento do titular, com saldo residual convertido em indenização única...", v:false, e:"Não é renda por prazo determinado, mas sim vitalícia com devolução de fundo."}
+            ]},
+            {c:"Marcos tem fatura de R$ 10.200 e quer refinanciar o saldo.", q:"Camila acrescentou em sua explicação que o parcelamento da fatura:", d:"Média", o:[
+                {t:"as parcelas do cartão são fixas e o prazo é definido, com incidência de encargos financeiros e impostos na operação.", v:true, e:"O parcelamento da fatura transforma a dívida rotativa em crédito parcelado com juros e IOF, com prazo e parcelas definidas."},
+                {t:"as parcelas são atualizadas com a mesma taxa de juros do crédito rotativo...", v:false, e:"O juro do parcelamento costuma ser menor que o do rotativo mensal contínuo."},
+                {t:"pode ser contratado sem cobrança de encargos financeiros e impostos, se o valor mínimo for pago.", v:false, e:"Sempre há encargos/juros ao parcelar a fatura."},
+                {t:"a extensão do vencimento para o próximo mês é automática e sem encargos...", v:false, e:"Tem encargos fortíssimos (rotativo) e não é sem juros."}
+            ]},
+            {c:"Marcos usou o cheque especial por 5 dias (R$ 800) e achou a cobrança alta. Questionou Camila.", q:"Camila esclareceu que:", d:"Média", o:[
+                {t:"os juros são calculados por dia sobre os valores realmente usados e o IOF inclui um percentual fixo e outro diário, cobrado pelo tempo de utilização do limite.", v:true, e:"Cheque especial cobra Juros + IOF Diário + IOF Adicional (0,38% fixo sobre a abertura do crédito). Isso onera bastante operações curtas."},
+                {t:"os juros incidem sobre o saldo devedor diário, mas o IOF é recolhido integralmente no primeiro dia de uso, sem componente adicional.", v:false, e:"Tem IOF diário sim."},
+                {t:"os juros são apropriados dia a dia... enquanto o IOF é cobrado na ativação do limite, sem incidência diária.", v:false, e:"O IOF tem cota diária (0,0082%)."},
+                {t:"o valor tem como base o saldo negativo médio do período e o IOF sobre a variação diária...", v:false, e:"A base é o saldo real diário, e o IOF tem componente fixo de 0,38%."}
+            ]},
+            {c:"Joana (aposentada) quer quitar dívidas e organizar orçamento. Opções: empréstimo pessoal, veículo, consignado.", q:"Carlos respondeu que, para o perfil da cliente, a proposta mais adequada seria:", d:"Fácil", o:[
+                {t:"o crédito consignado, pois o desconto em folha reduz risco para o banco, permitindo juros menores e prazos mais longos.", v:true, e:"Sendo aposentada, ela tem acesso ao consignado, que possui as melhores taxas do mercado devido ao baixo risco (desconto em folha)."},
+                {t:"o empréstimo pessoal, pois garante uso livre dos recursos, com taxa reduzida...", v:false, e:"Empréstimo pessoal tem taxas altíssimas comparado ao consignado."},
+                {t:"o financiamento do veículo, pois é direcionado a um bem específico...", v:false, e:"Ela quer organizar dívidas, não comprar um veículo."},
+                {t:"o financiamento do veículo, pois garante a posse imediata...", v:false, e:"Novamente, não faz sentido para o objetivo dela."}
+            ]},
+            {c:"Banco reduziu o limite do cheque especial de Helena após aumento do compulsório pelo Banco Central.", q:"A explicação de Rafael é que a decisão do Banco Central:", d:"Média", o:[
+                {t:"retira dinheiro de circulação, diminuindo o montante que os bancos têm para emprestar e, consequentemente, levando a uma política de crédito mais restritiva.", v:true, e:"O recolhimento compulsório obriga o banco a depositar dinheiro no Bacen. Sobra menos para emprestar, logo os limites de crédito ao cliente encolhem e encarecem."},
+                {t:"estimula os bancos a remunerarem depósitos à vista...", v:false, e:"Depósitos à vista não são remunerados."},
+                {t:"promove ajustes operacionais e, uma vez cumpridas, os bancos mantêm limites inalterados.", v:false, e:"Afeta a liquidez na veia e reduz o limite sim."},
+                {t:"visa resguardar saldos dos correntistas... eventuais cortes não se relacionam diretamente às mudanças no compulsório.", v:false, e:"Relaciona-se diretamente, é o efeito multiplicador da moeda ao contrário."}
+            ]},
+            {c:"Paulo e Helena na agência: um não gosta do app, a outra acha rápido o autoatendimento mas que falha.", q:"Considerando as situações, Fernando pode esclarecer que:", d:"Fácil", o:[
+                {t:"o banco disponibiliza canais presenciais, digitais e telefônicos, com segurança e informações claras, e o cliente pode escolher conforme sua necessidade.", v:true, e:"Atendimento omnichannel é a regra: cliente escolhe o canal, todos com segurança e transparência."},
+                {t:"o atendimento presencial tende a ser priorizado para resolver situações que envolvem divergências...", v:false, e:"Muitas divergências podem ser resolvidas remotamente sem restrição."},
+                {t:"o canal digital substitui o presencial, devendo o cliente resolver suas solicitações no aplicativo...", v:false, e:"O banco deve oferecer alternativas de atendimento (norma Bacen)."},
+                {t:"a definição do canal de atendimento deve seguir regras internas, podendo exigir autorização do gerente...", v:false, e:"Cliente tem liberdade para escolher o canal de sua preferência."}
+            ]},
+            {c:"Investidor preocupado com complexidade de acesso a ativos internacionais.", q:"A compreensão da regulamentação permite ao profissional explicar que:", d:"Média", o:[
+                {t:"plataformas digitais permitem abrir contas no exterior, com integração cambial e fiscal, ampliando o acesso a diversos perfis de investidores.", v:true, e:"Atualmente, contas internacionais para brasileiros via plataformas (como Avenue, Nomad, BTG, Inter) simplificaram absurdamente o processo (câmbio e impostos integrados)."},
+                {t:"a abertura de conta internacional depende de relacionamento direto com bancos estrangeiros, sem soluções locais...", v:false, e:"Existem muitas soluções locais (corretoras BR no exterior)."},
+                {t:"as remessas requerem autorização formal do Banco Central a cada operação...", v:false, e:"Não há autorização formal prévia, é tudo eletrônico e automático via eFX."},
+                {t:"o acesso a ativos internacionais é restrito a fundos exclusivos de maior porte...", v:false, e:"BDRs, ETFs e contas no exterior estão acessíveis ao varejo."}
+            ]},
+            {c:"Renegociação de crédito consignado. O cliente questiona se o seguro prestamista anterior continua.", q:"Nesse cenário, o profissional CPA deve explicar que:", d:"Média", o:[
+                {t:"a apólice anterior deixa de vigorar, e exige-se nova cobertura prestamista vinculada ao credor.", v:true, e:"Ao repactuar a dívida (novo valor e prazo), a apólice original é cancelada e precisa-se emitir uma nova correspondente ao novo risco."},
+                {t:"a apólice original permanece válida até o término do prazo do novo empréstimo.", v:false, e:"Falso, mudaram as condições."},
+                {t:"o beneficiário passa a ser a instituição bancária independentemente de nova apólice.", v:false, e:"Precisa de nova apólice vinculada ao contrato."},
+                {t:"o seguro prestamista cobre as dívidas do cliente com a instituição.", v:false, e:"A alternativa A explica o desfecho processual do refinanciamento corretamente."}
+            ]},
+            {c:"Casal quer independência financeira em 20 anos. Frederico explica que antes de produtos, deve-se dimensionar a reserva-alvo.", q:"Em sua explicação, Frederico mostra que o casal deve considerar:", d:"Difícil", o:[
+                {t:"a taxa real e o horizonte de tempo para a aposentadoria desejada.", v:true, e:"Para simular uma reserva alvo, as variáveis centrais são o Prazo (20 anos) e a Taxa Real de Juros (acima da inflação), que dirão quanto é preciso aportar."},
+                {t:"o histórico da carteira ao estimar o patrimônio e os limites da projeção.", v:false, e:"Histórico passado não garante futuro, é menos importante que a taxa real projetada."},
+                {t:"o patrimônio atual corrigido por inflação e os aportes constantes.", v:false, e:"Tem que considerar a rentabilidade real, não apenas corrigir o que já tem."},
+                {t:"o saldo atual e os valores nominais das despesas futuras.", v:false, e:"Não adianta valores nominais; deve-se usar valores reais (para travar o poder de compra)."}
+            ]},
+            {c:"Casal Bruno e Sofia. Renda 8.200 + bicos. Despesas fixas 4.100 e variáveis incertas. Querem saber como medir quanto separar por mês.", q:"Camila esclarece que uma estratégia possível seria:", d:"Média", o:[
+                {t:"estimar a renda líquida recorrente, subtrair despesas fixas e a média provisionada das variáveis e sazonais, e usar a sobra como poupança mensal de referência.", v:true, e:"Isolando a renda certa (8.200) e provisionando os gastos de forma média anual, o casal acha um valor seguro para poupar todo mês sem usar o rotativo."},
+                {t:"adotar uma meta fixa de poupança... incorporando bônus e bicos ao cálculo mensal...", v:false, e:"Bônus e bicos são incertos. Contar com eles no orçamento fixo leva a dívidas."},
+                {t:"calcular a poupança pela diferença entre renda anual projetada e despesas fixas... assumindo que variáveis e sazonais se compensam...", v:false, e:"Não se compensam sozinhas, precisa provisionar (guardar 1/12 do IPTU todo mês)."},
+                {t:"basear a poupança em meses de maior renda, assumindo que os valores extras compensam eventuais déficits.", v:false, e:"Renda irregular exige planejamento nos meses de baixa."}
+            ]},
+            {c:"Felipe vai financiar veículo (100k). Renda 12k. Despesa 9k. Reserva 47k. Quer preservar reserva de 3 meses (27k), parcela menor que 20% da renda (2,4k) e menor CET.", q:"Com a análise de Carla, Felipe decidiu:", d:"Difícil", o:[
+                {t:"optar pelo financiamento em 48x, CET 18% a.a., entrada de R$ 20 mil, parcela de R$ 2.295,00", v:true, e:"A reserva era 47k. Ele dá 20k, sobra 27k (Exatamente 3 meses de despesa de 9k). A parcela fica R$ 2.295 (< 2.4k). CET 18% é bom equilíbrio."},
+                {t:"escolher 60x a 22% a.a., priorizando menor desembolso inicial...", v:false, e:"CET 22% é alto e não atende o 'minimizar custo total'."},
+                {t:"adotar 36x com balloon de 40% a 19% a.a....", v:false, e:"Paga taxa maior e tem a bomba de 40% (40k) pra pagar no final."},
+                {t:"fechar 48x a 17% a.a. com entrada de 25 mil...", v:false, e:"Tira 25k da reserva de 47k, sobraria 22k. Mas a regra era não baixar de 27k de reserva de emergência."}
+            ]},
+            {c:"Ricardo em dúvida sobre qual modelo de declaração de IR escolher após aplicar em previdência.", q:"André explicou que a escolha entre os dois modelos deve considerar:", d:"Fácil", o:[
+                {t:"a relação entre o total de despesas dedutíveis e o desconto padrão, avaliando qual opção resulta na menor base de cálculo do imposto.", v:true, e:"A regra de ouro do IR é matemática: se as deduções (PGBL, saúde, escola) somarem mais que o desconto simplificado de 20%, o modelo Completo é melhor."},
+                {t:"a quantidade de fontes de renda e o tipo de aplicação financeira...", v:false, e:"Fonte de renda não dita se é simples/completo. VGBL não deduz."},
+                {t:"a forma de recebimento dos rendimentos e categoria profissional...", v:false, e:"Irrelevante para a escolha do modelo."},
+                {t:"o volume de rendimentos e o valor das isenções...", v:false, e:"A base são as despesas dedutíveis (desconto legal)."}
+            ]},
+            {c:"Cláudio teve despesa médica. Opções: cheque especial, rotativo do cartão ou empréstimo pessoal.", q:"Em sua análise, Fernando esclarece que Cláudio deve:", d:"Média", o:[
+                {t:"comparar cada opção e escolher a com menor custo efetivo total e prazo compatível com o fluxo, planejando quitação sem recorrer a novos giros.", v:true, e:"Comparar o CET e simular a parcela que cabe no bolso para não criar uma bola de neve."},
+                {t:"priorizar o cheque especial pela liberação imediata e usar o 13º...", v:false, e:"Juros do cheque especial são proibitivos. Péssima ideia."},
+                {t:"avaliar o uso do rotativo do cartão... e se necessário, parcelar a fatura depois...", v:false, e:"Rotativo do cartão é a dívida mais cara do Brasil."},
+                {t:"verificar empréstimo de longo prazo... ainda que o CET fique mais elevado.", v:false, e:"Maximizar o CET significa pagar juros excessivos sem necessidade."}
+            ]},
+            {c:"Marina atende Felipe, investidor iniciante desconfortável com oscilações.", q:"Marina explicou que, para atingir seus objetivos, Felipe pode:", d:"Fácil", o:[
+                {t:"analisar sua tolerância ao risco, seus objetivos financeiros e o horizonte de tempo.", v:true, e:"Essa é a santíssima trindade do Suitability (perfil do investidor) para evitar sustos com oscilações."},
+                {t:"avaliar o seu histórico de aplicações e o volume investido...", v:false, e:"Se ele é iniciante, não tem histórico profundo. O perfil importa mais."},
+                {t:"definir seu perfil com base... na forma como reage às oscilações.", v:false, e:"Falta incluir os objetivos e prazo, essenciais."},
+                {t:"verificar seu nível de familiaridade com o mercado financeiro...", v:false, e:"Familiaridade é apenas um dos pilares, faltam os objetivos de prazo/risco."}
+            ]},
+            {c:"Roberto (renda fixa) quer ir para fundo de ações após dica de amigo. Inseguro, pediu ajuda.", q:"Elisa explicou que a ideia que ele teve é diversificar. Porém, para montar uma carteira de investimentos, Roberto deve:", d:"Fácil", o:[
+                {t:"estar alinhado ao perfil de risco, aos objetivos e a seu horizonte de investimento.", v:true, e:"Toda alocação (mesmo diversificando em ações) deve respeitar o perfil de risco (Suitability) do cliente para evitar que ele venda no fundo do poço no pânico."},
+                {t:"buscar rendimento superior à média de mercado, priorizando retornos mais elevados.", v:false, e:"Risco e retorno andam juntos. Se é inseguro, não deve priorizar risco excessivo."},
+                {t:"manter liquidez imediata, permitindo resgate a qualquer momento.", v:false, e:"Fundo de ações raramente tem liquidez imediata (D+30, D+2)."},
+                {t:"privilegiar produtos com menor custo e regime tributário mais favorável.", v:false, e:"Custos importam, mas o alinhamento de risco é primordial."}
+            ]},
+            {c:"Instituição foca volume de captação e encurta etapas de atendimento. Profissional CPA é pressionado a fazer o mesmo sob o argumento de que 'o mercado exige'.", q:"Diante da situação apresentada, espera-se que o profissional:", d:"Média", o:[
+                {t:"reafirme internamente os princípios de integridade, transparência e lealdade, sustentando que a orientação ao cliente deve prevalecer sobre metas comerciais de curto prazo.", v:true, e:"A ética profissional e o Código ANBIMA colocam os interesses do cliente e a qualidade da recomendação acima da meta de vendas da instituição."},
+                {t:"ajuste temporariamente o processo de atendimento, buscando conciliar...", v:false, e:"Não se 'ajusta' a integridade para bater meta."},
+                {t:"reporte o conflito à liderança direta e aguarde deliberação formal antes de alterar...", v:false, e:"A liderança é quem está pressionando. O profissional deve se manter firme na conduta correta."},
+                {t:"ajuste a rotina de atendimento... desde que o cliente confirme por escrito ter ciência...", v:false, e:"Papel assinado não exime o profissional da má prática (vender rápido sem perfil adequado)."}
+            ]},
+            {c:"Profissional CPA nota que parente próximo iniciou ordem de ações que também tem na sua carteira. O profissional não participou do atendimento.", q:"Nesse contexto, a conduta adequada do profissional é:", d:"Média", o:[
+                {t:"declarar o vínculo e informar aos controles internos as intenções de compra do seu parente.", v:true, e:"Situações que envolvam Front Running ou uso de informação de parentes próximos devem ser declaradas ao Compliance (Conflito de Interesses preventivo)."},
+                {t:"comunicar o vínculo à instituição e prosseguir com a operação...", v:false, e:"Ele não é o operador do parente, não cabe a ele 'prosseguir' ou não."},
+                {t:"concluir a operação e explicar o caso, se houver questionamento...", v:false, e:"Ética exige atitude proativa, não esperar ser pego no erro."},
+                {t:"fornecer ao parente somente informações públicas sobre o emissor...", v:false, e:"Não é ele quem atende o parente, o foco é avisar o controle interno."}
+            ]},
+            {c:"Transferência automática de resgate falhou (erro interno). Eventos semelhantes geram impactos.", q:"Claudia explicou que o evento descrito pode envolver:", d:"Média", o:[
+                {t:"falhas de sistemas, erros humanos ou problemas de processo que causem perdas financeiras diretas ou indiretas à instituição.", v:true, e:"A definição clássica de Risco Operacional engloba falhas em pessoas, processos e sistemas, ou eventos externos (Bacen)."},
+                {t:"atrasos ou inconsistências em procedimentos automatizados, decorrentes de falhas de comunicação entre sistemas internos e externos.", v:false, e:"Isso é um subset da A, a alternativa A é a definição técnica oficial completa."},
+                {t:"irregularidades em controles internos que gerem descumprimento de normas...", v:false, e:"Isso é Risco de Compliance/Legal."},
+                {t:"erros de registro, omissões em lançamentos contábeis...", v:false, e:"Risco contábil, mas o Operacional é muito mais amplo e engloba o caso."}
+            ]},
+            {c:"Chat com Jorge. Reclamação: 'Por que pedem documento de novo?'.", q:"Selecione a alternativa que melhor concilia a informação correta a um atendimento adequado:", d:"Média", o:[
+                {t:"Jorge, entendo sua dúvida. Isso faz parte do KYC, que significa 'Conheça seu Cliente'. Serve para manter seu cadastro atualizado e garantir segurança contra fraudes. Podemos fazer juntos.", v:true, e:"Acolhe o cliente, explica tecnicamente (KYC/Lavagem de dinheiro) e oferece ajuda para resolver."},
+                {t:"Jorge, isso é uma atualização que todos os clientes precisam fazer... É rápido e posso te ajudar.", v:false, e:"Omite o motivo real (KYC), tratando apenas como burocracia."},
+                {t:"Jorge, isso é uma atualização de cadastro que o banco pede periodicamente...", v:false, e:"A A é mais técnica e completa com relação ao KYC."},
+                {t:"Jorge, isso é padrão do sistema... Vou te mandar o link...", v:false, e:"Péssimo atendimento, empurrando o problema para o cliente fazer sozinho."}
+            ]},
+            {c:"Chat com Jorge KYC. Dias depois a transferência foi recusada.", q:"A causa mais provável para o bloqueio é:", d:"Fácil", o:[
+                {t:"restrição aplicada pela instituição por pendência na atualização cadastral.", v:true, e:"Bancos são obrigados a bloquear transações de clientes com cadastro desatualizado por conta das normas de PLD/KYC."},
+                {t:"limite diário de transferência atingido.", v:false, e:"O contexto da conversa foi sobre o cadastro e KYC."},
+                {t:"bloqueio preventivo automático por movimentação atípica.", v:false, e:"Ele paga fornecedor, é atípico se ele não avisou, mas a pendência cadastral trava a conta antes."},
+                {t:"instabilidade temporária no sistema bancário.", v:false, e:"Fora de contexto do problema do cliente."}
+            ]},
+            {c:"Fechamento de índice, player grande executa negócios agressivos em poucos ativos de baixo free float nos minutos finais do leilão.", q:"Aplicando seu conhecimento técnico, o profissional CPA identifica que essa prática caracteriza:", d:"Difícil", o:[
+                {t:"manipulação de índice de referência, pela alteração deliberada de preços de ativos componentes com o objetivo de influenciar o desempenho do mercado.", v:true, e:"O investidor espreme ativos ilíquidos no leilão final (quando os preços de fechamento são marcados) para artificialmente jogar o Ibovespa para cima e marcar posições em derivativos no lucro."},
+                {t:"money pass, caracterizado pela circulação de recursos entre contas relacionadas...", v:false, e:"Money pass é lavar dinheiro ou transferir recursos artificialmente entre fundos irmãos."},
+                {t:"insider trading secundário...", v:false, e:"Insider é operar com informação privilegiada, não o caso."},
+                {t:"churning, caracterizado pelo aumento do número de negócios com a finalidade de gerar comissões...", v:false, e:"Churning (girar a carteira do cliente) seria corretora girando ordem à toa. Aqui foi o cliente manipulando fechamento."}
+            ]},
+            {c:"Corretora que paga remuneração baseada em volume. Profissional CPA identifica que equipe automatizou ordens de baixo valor repetindo compra/venda no mesmo ativo para gerar volume. (Churning)", q:"A conduta esperada do profissional CPA é:", d:"Média", o:[
+                {t:"comunicar formalmente o compliance sobre o padrão de operações suspeitas e sugerir a suspensão temporária das campanhas até a apuração completa dos fatos.", v:true, e:"A prática detectada é 'Churning' (girar carteira excessivamente só para o corretor ganhar taxa). É uma violação ética grave. O compliance deve atuar na hora."},
+                {t:"ajustar a comunicação comercial, orientando a equipe a reavaliar... acompanhando as campanhas...", v:false, e:"Não se reavalia, é ilegal, tem que suspender e denunciar internamente."},
+                {t:"considerar que a alta rotatividade decorre de decisões autônomas dos investidores...", v:false, e:"Eles automatizaram sem autorização expressa para bater meta, não foi o investidor."},
+                {t:"realizar o registro formal... e aguardar manifestação da auditoria independente...", v:false, e:"Não se aguarda auditoria externa, age-se imediatamente com o compliance."}
+            ]},
+            {c:"Fernanda atende pequeno empreendedor que buscou crédito no TradFi e negado. Explicou sobre finanças descentralizadas (DeFi) em blockchain.", q:"Para auxiliar, Fernanda também explicou que essa opção (DeFi) oferece:", d:"Média", o:[
+                {t:"acesso aberto a protocolos de crédito, permitindo empréstimos potencialmente de menor valor sem depender da decisão direta de grandes bancos.", v:true, e:"DeFi usa Smart Contracts para emprestar via pools de liquidez sem checagem de Serasa, apenas exigindo a garantia cripto (colateral). É democrático e sem intermediários."},
+                {t:"garantia de que todos os empréstimos sejam subsidiados por governos locais...", v:false, e:"DeFi não tem governo nem banco central na jogada."},
+                {t:"dispensa da exigência de sobrecolateralização em todos os contratos...", v:false, e:"Pelo contrário, no DeFi, como não há checagem de crédito, quase todos exigem OVERcollateralization (garantia maior que o empréstimo)."},
+                {t:"oferta de crédito direcionada a corporações que atuam como validadores...", v:false, e:"Acesso é aberto a qualquer pessoa física com uma wallet."}
+            ]},
+            {c:"Rafael atende cliente que fez empréstimo em DeFi e tudo ocorreu via contrato automático, sem cartório ou intermediário.", q:"Rafael esclarece que esse funcionamento é seguro porque o blockchain:", d:"Difícil", o:[
+                {t:"permite o registro imutável e compartilhado das regras e transações, viabilizando a execução automática de contratos e a validação descentralizada.", v:true, e:"Os Smart Contracts na blockchain garantem que o código será executado (se A pagar, B transfere). Não pode ser alterado por ninguém (imutável)."},
+                {t:"substitui integralmente as instituições financeiras tradicionais, eliminando a necessidade de regulação...", v:false, e:"Na prática não substitui integralmente a economia real e regulação já está chegando para os provedores de acesso."},
+                {t:"atua como uma carteira digital centralizada, responsável por armazenar recursos...", v:false, e:"Blockchain é DESCENTRALIZADA, não centralizada."},
+                {t:"garante estabilidade de preços e proteção contra perdas financeiras...", v:false, e:"Criptomoedas (e ativos em DeFi) são altamente voláteis. Não há garantia de preço."}
+            ]},
+            {c:"Carla explica sobre ataques a exchanges centralizadas (custódia na corretora). Explica que há plataformas DEX.", q:"Carla conclui que a plataforma relativamente menos exposta a esse ataque é aquela que:", d:"Média", o:[
+                {t:"funciona sem custódia centralizada de ativos, reduzindo impactos de ataques a servidores únicos, pois as operações ocorrem diretamente entre usuários.", v:true, e:"DEX (Decentralized Exchange) não guarda os fundos dos usuários (non-custodial). Você negocia direto da sua carteira. Se a DEX falhar, seu dinheiro continua na sua carteira."},
+                {t:"concentra os ativos dos clientes em servidores privados...", v:false, e:"Isso é a corretora centralizada (CEX), alvo principal de hackers."},
+                {t:"depende de autorização prévia de uma instituição responsável por validar...", v:false, e:"DEX não tem instituição validando, são Smart Contracts."},
+                {t:"mantém controle central dos ativos e oferece mecanismos de recuperação...", v:false, e:"De novo, controle central é CEX. DEX é descentralizado."}
+            ]},
+            {c:"Arthur perguntou se após autorizar o Open Finance precisaria enviar dados repetidamente.", q:"A análise correta sobre as consultas autorizadas no Open Finance é de que:", d:"Fácil", o:[
+                {t:"as consultas, após a autorização, ocorrem automaticamente durante o prazo definido pelo cliente, sem necessidade de reenvio manual de informações.", v:true, e:"A principal vantagem do Open Finance é que as APIs puxam os dados automaticamente enquanto durar o consentimento (12 meses, geralmente)."},
+                {t:"o cliente precisa confirmar cada consulta individualmente através do aplicativo...", v:false, e:"Impraticável. Uma autorização cobre todo o período solicitado."},
+                {t:"as consultas automáticas dependem de acordos bilaterais entre as instituições...", v:false, e:"Dependem da norma geral do Bacen, não de acordos bilaterais."},
+                {t:"o compartilhamento ocorre em lotes periódicos definidos pelo regulador, geralmente uma vez por semana...", v:false, e:"Ocorre em tempo real conforme necessidade da instituição receptora."}
+            ]},
+            {c:"Se Arthur autorizasse Open Finance e a instituição receptora encerrasse as atividades.", q:"A análise correta sobre o tratamento dos dados compartilhados seria de que:", d:"Média", o:[
+                {t:"a instituição deve seguir as normas de encerramento que incluem descarte seguro dos dados, e o consentimento se extingue automaticamente.", v:true, e:"Pela LGPD e regras do Open Finance, se o propósito se encerra ou a empresa fecha, ela deve descartar os dados e os consentimentos perdem a validade."},
+                {t:"os dados são automaticamente transferidos para a instituição de origem...", v:false, e:"Não retornam, são descartados."},
+                {t:"o cliente precisa solicitar formalmente a devolução dos dados antes do encerramento...", v:false, e:"A empresa tem a obrigação de descartar, não exige formalização do cliente para devolver."},
+                {t:"a instituição sucessora, se houver, herda automaticamente todos os consentimentos...", v:false, e:"Consentimentos são INTRANSFERÍVEIS."}
+            ]},
 
-            // BLOCO 2 (8 Questões)
-            { id: 11, category: "BLOCO 2 — Sistema Financeiro Nacional", text: "O Conselho Monetário Nacional (CMN) tem como função principal:", options: ["Executar a política monetária", "Definir diretrizes do Sistema Financeiro Nacional", "Fiscalizar instituições financeiras", "Regular fundos de investimento"], correct: 1, explanation: "O CMN é o órgão normativo máximo. Ele 'manda', define as metas (ex: Meta de Inflação) e diretrizes gerais. Quem executa é o Banco Central." },
-            { id: 12, category: "BLOCO 2", text: "O Banco Central do Brasil é responsável por:", options: ["Regular o mercado de capitais", "Executar a política monetária e controlar a liquidez", "Garantir depósitos dos investidores", "Administrar fundos"], correct: 1, explanation: "O Bacen executa as ordens do CMN, controla a inflação (via Selic/Compulsório) e fiscaliza os bancos." },
-            { id: 13, category: "BLOCO 2", text: "A Comissão de Valores Mobiliários (CVM) atua principalmente na:", options: ["Política fiscal", "Supervisão do mercado de valores mobiliários", "Definição da taxa Selic", "Garantia de crédito"], correct: 1, explanation: "A CVM cuida do mercado de capitais: Bolsa, Fundos, Ações e Debêntures. Protege o investidor nessas áreas." },
-            { id: 14, category: "BLOCO 2", text: "A ANBIMA é caracterizada como entidade de:", options: ["Fiscalização governamental", "Autorregulação do mercado financeiro", "Política monetária", "Supervisão bancária"], correct: 1, explanation: "ANBIMA é uma associação privada que exerce a Autorregulação (regras criadas pelo próprio mercado para elevar o padrão de qualidade)." },
-            { id: 15, category: "BLOCO 2", text: "A taxa Selic é utilizada como referência para:", options: ["Rentabilidade de ações", "Juros básicos da economia", "Taxas de câmbio", "Índices imobiliários"], correct: 1, explanation: "A Selic é a taxa livre de risco e balizadora de todo o crédito e rentabilidade da Renda Fixa no país." },
-            { id: 16, category: "BLOCO 2", text: "O Fundo Garantidor de Créditos (FGC) tem como objetivo:", options: ["Proteger investidores contra perdas de mercado", "Garantir depósitos em caso de insolvência da instituição", "Cobrir prejuízos em ações", "Garantir rentabilidade mínima"], correct: 1, explanation: "O FGC garante que você receba seu dinheiro de volta (até o limite) se o banco quebrar (insolvência). Não cobre oscilação de mercado." },
-            { id: 17, category: "BLOCO 2", text: "Estão cobertos pelo FGC:", options: ["Ações", "Fundos de investimento", "CDB e LCI", "Debêntures"], correct: 2, explanation: "FGC cobre produtos bancários: Conta Corrente, Poupança, CDB, LCI, LCA, LC. Fundos e Ações não têm essa garantia." },
-            { id: 18, category: "BLOCO 2", text: "O limite de cobertura do FGC é de:", options: ["R$ 100 mil por CPF", "R$ 250 mil por CPF e instituição", "R$ 500 mil por aplicação", "Valor ilimitado"], correct: 1, explanation: "A regra atual é R$ 250 mil por CPF e por Conglomerado Financeiro (limitado a um teto global de R$ 1 milhão a cada 4 anos)." },
-
-            // BLOCO 3 (8 Questões)
-            { id: 19, category: "BLOCO 3 — Perfil do Investidor, Risco e Liquidez", text: "Um investidor conservador prioriza principalmente:", options: ["Alta rentabilidade", "Segurança e liquidez", "Exposição a ações", "Volatilidade"], correct: 1, explanation: "O conservador não quer perder o principal. Ele aceita ganhar menos em troca de Segurança (não perder) e Liquidez (sacar rápido)." },
-            { id: 20, category: "BLOCO 3", text: "O perfil do investidor deve ser revisto quando:", options: ["O mercado oscila", "Há mudança na situação financeira ou objetivos", "O profissional decide", "O cliente obtém ganhos"], correct: 1, explanation: "O perfil muda com a vida. Casamento, herança, aposentadoria, desemprego alteram a capacidade e vontade de tomar risco." },
-            { id: 21, category: "BLOCO 3", text: "Liquidez pode ser definida como:", options: ["Nível de risco do investimento", "Facilidade de conversão em dinheiro", "Rentabilidade esperada", "Prazo de vencimento"], correct: 1, explanation: "Liquidez é a velocidade e facilidade com que você transforma um ativo em dinheiro na conta pelo preço justo." },
-            { id: 22, category: "BLOCO 3", text: "Rentabilidade passada:", options: ["Garante desempenho futuro", "Serve apenas como referência histórica", "Elimina riscos", "Substitui análise"], correct: 1, explanation: "Regra de ouro: Rentabilidade passada não é garantia de rentabilidade futura. O mercado muda." },
-            { id: 23, category: "BLOCO 3", text: "A diversificação reduz principalmente:", options: ["Risco sistemático", "Risco específico", "Inflação", "Tributação"], correct: 1, explanation: "Diversificar (comprar vários ativos) elimina o risco de UM ativo específico dar problema. Não elimina o risco do mercado todo (sistemático) cair." },
-            { id: 24, category: "BLOCO 3", text: "(CASE) Cliente pretende utilizar os recursos em 3 meses. Qual característica é essencial no investimento?", options: ["Alta volatilidade", "Baixa liquidez", "Alta liquidez", "Longo prazo"], correct: 2, explanation: "Para prazos curtos, a liquidez é o fator mais importante. O cliente precisa ter certeza que poderá resgatar o dinheiro em 3 meses sem travas." },
-            { id: 25, category: "BLOCO 3", text: "O risco de crédito está associado à:", options: ["Variação do preço do ativo", "Possibilidade de inadimplência do emissor", "Oscilação do mercado", "Inflação"], correct: 1, explanation: "Risco de crédito é o 'risco de calote'. É o emissor não devolver o dinheiro emprestado." },
-            { id: 26, category: "BLOCO 3", text: "Um investimento com maior risco tende a oferecer:", options: ["Menor retorno", "Maior retorno esperado", "Retorno garantido", "Ausência de volatilidade"], correct: 1, explanation: "Relação Risco x Retorno: ninguém corre risco de graça. Para aceitar risco, o investidor exige uma expectativa de retorno maior." },
-
-            // BLOCO 4 (12 Questões)
-            { id: 27, category: "BLOCO 4 — Renda Fixa", text: "Um título de renda fixa caracteriza-se por:", options: ["Rentabilidade imprevisível", "Regras de remuneração definidas", "Ausência de risco", "Liquidez obrigatória"], correct: 1, explanation: "Na Renda Fixa, você sabe COMO será pago (ex: 10% ou 100% do CDI) no momento da contratação." },
-            { id: 28, category: "BLOCO 4", text: "O emissor de um CDB é:", options: ["Tesouro Nacional", "Instituição financeira", "Empresa não financeira", "Bolsa de valores"], correct: 1, explanation: "CDB (Certificado de Depósito Bancário) é emitido por Bancos (Instituições Financeiras)." },
-            { id: 29, category: "BLOCO 4", text: "O Tesouro Selic é mais indicado para:", options: ["Investimentos de longo prazo com volatilidade", "Reserva de emergência", "Especulação", "Proteção cambial"], correct: 1, explanation: "Por ter baixa volatilidade e liquidez diária, é o ativo mais seguro para Reserva de Emergência." },
-            { id: 30, category: "BLOCO 4", text: "Um título prefixado apresenta:", options: ["Rentabilidade atrelada à inflação", "Taxa definida no momento da aplicação", "Rentabilidade variável", "Isenção de risco"], correct: 1, explanation: "No prefixado, a taxa é nominal e fixa (ex: 12% a.a.). Você sabe o valor final exato em reais se levar ao vencimento." },
-            { id: 31, category: "BLOCO 4", text: "O risco de mercado em títulos de renda fixa está relacionado à:", options: ["Inadimplência", "Oscilação das taxas de juros", "Falta de liquidez", "Tributação"], correct: 1, explanation: "Se os juros de mercado sobem, o preço do título prefixado cai (Marcação a Mercado). Isso é risco de mercado na renda fixa." },
-            { id: 32, category: "BLOCO 4", text: "Marcação a mercado significa:", options: ["Manter o título até o vencimento", "Atualizar diariamente o valor do título conforme o mercado", "Garantir retorno", "Eliminar volatilidade"], correct: 1, explanation: "É trazer o valor do título para o preço justo de hoje. Se vender hoje, é esse valor que recebe (pode ter ágio ou deságio)." },
-            { id: 33, category: "BLOCO 4", text: "LCI e LCA possuem como principal vantagem para pessoa física:", options: ["Alta liquidez", "Isenção de Imposto de Renda", "Rentabilidade garantida", "Prazo curto"], correct: 1, explanation: "LCI (Imobiliário) e LCA (Agro) são isentos de IR para PF como forma de incentivo do governo a esses setores." },
-            { id: 34, category: "BLOCO 4", text: "Quanto maior o prazo do investimento em renda fixa tributável, segundo a tabela regressiva:", options: ["Maior o imposto", "Menor o imposto", "Imposto fixo", "Isenção automática"], correct: 1, explanation: "A tabela regressiva beneficia quem deixa o dinheiro mais tempo. Começa em 22,5% e cai para 15% após 720 dias." },
-            { id: 35, category: "BLOCO 4", text: "(CASE) Cliente deseja previsibilidade de retorno até o vencimento. Qual produto é mais adequado?", options: ["Tesouro Selic", "Tesouro Prefixado", "Fundo multimercado", "Fundo de ações"], correct: 1, explanation: "O Tesouro Prefixado é o único que diz exatamente quanto vai render (ex: 10% a.a.) se carregado até o final, garantindo previsibilidade nominal." },
-            { id: 36, category: "BLOCO 4", text: "A tabela regressiva do IR na renda fixa inicia em:", options: ["15%", "17,5%", "20%", "22,5%"], correct: 3, explanation: "A alíquota máxima para curto prazo (até 180 dias) é de 22,5%." },
-            { id: 37, category: "BLOCO 4", text: "O FGC cobre aplicações até o limite de:", options: ["R$ 100 mil", "R$ 250 mil", "R$ 500 mil", "Sem limite"], correct: 1, explanation: "R$ 250.000,00 por CPF e por instituição financeira." },
-            { id: 38, category: "BLOCO 4", text: "Um investimento resgatado antes do vencimento pode sofrer:", options: ["Isenção de imposto", "Oscilação de preço", "Garantia de retorno", "Eliminação de risco"], correct: 1, explanation: "Devido à Marcação a Mercado, sair antes do prazo expõe o investidor à oscilação de preço, podendo gerar prejuízo sobre o principal." },
-
-            // BLOCO 5 (7 Questões)
-            { id: 39, category: "BLOCO 5 — Fundos de Investimento", text: "Um fundo de investimento é juridicamente um:", options: ["Título de crédito", "Condomínio de investidores", "Derivativo", "Banco"], correct: 1, explanation: "Fundo é um condomínio onde diversos investidores (cotistas) juntam recursos para investir em conjunto sob regras comuns." },
-            { id: 40, category: "BLOCO 5", text: "A taxa de administração de um fundo é cobrada:", options: ["Apenas se houver lucro", "Independentemente da rentabilidade", "Somente no resgate", "Apenas em fundos de ações"], correct: 1, explanation: "A taxa de administração paga os custos fixos (gestor, administrador) e é cobrada sempre, mesmo que o fundo tenha prejuízo." },
-            { id: 41, category: "BLOCO 5", text: "Fundos DI investem majoritariamente em:", options: ["Ações", "Títulos atrelados à taxa Selic", "Moedas estrangeiras", "Imóveis"], correct: 1, explanation: "Fundos DI (Referenciados DI) investem em títulos de baixo risco (públicos ou privados) atrelados à Selic/CDI." },
-            { id: 42, category: "BLOCO 5", text: "O patrimônio líquido de um fundo corresponde:", options: ["Ao capital do gestor", "Aos ativos menos os passivos", "Apenas ao lucro", "À rentabilidade acumulada"], correct: 1, explanation: "PL = Soma de tudo que o fundo tem (Ativos) menos o que ele deve pagar (Passivos/Despesas)." },
-            { id: 43, category: "BLOCO 5", text: "O come-cotas ocorre em fundos de:", options: ["Ações", "Renda fixa e multimercado", "Imobiliários", "ETFs"], correct: 1, explanation: "Come-cotas (antecipação de IR) ocorre em maio e novembro nos fundos de Renda Fixa, Cambial e Multimercado (Abertos)." },
-            { id: 44, category: "BLOCO 5", text: "(CASE) Cliente conservador deseja investir via fundo com liquidez diária. Qual fundo é mais adequado?", options: ["Fundo de ações", "Fundo cambial", "Fundo DI", "Fundo multimercado agressivo"], correct: 2, explanation: "O Fundo DI oferece baixo risco e liquidez imediata, alinhado ao perfil conservador." },
-            { id: 45, category: "BLOCO 5", text: "Fundos de investimento são regulados pela:", options: ["ANBIMA", "CVM", "Receita Federal", "Banco Central"], correct: 1, explanation: "A Comissão de Valores Mobiliários (CVM) é o órgão regulador e fiscalizador da indústria de fundos no Brasil." },
-
-            // BLOCO 6 (5 Questões)
-            { id: 46, category: "BLOCO 6 — Tributação Básica e Situações Práticas", text: "O imposto sobre renda fixa incide sobre:", options: ["Valor total investido", "Apenas o rendimento", "O patrimônio", "O prazo"], correct: 1, explanation: "O IR incide apenas sobre o LUCRO (rendimento). O valor principal investido não é tributado novamente." },
-            { id: 47, category: "BLOCO 6", text: "Ganho de capital ocorre quando:", options: ["O investimento vence", "O valor de venda é maior que o de compra", "Há pagamento de juros", "O fundo cobra taxa"], correct: 1, explanation: "Ganho de capital é a diferença positiva entre o preço que você vendeu e o preço que pagou." },
-            { id: 48, category: "BLOCO 6", text: "(CASE) Cliente resgata um CDB após 150 dias. Qual a alíquota de IR?", options: ["15%", "17,5%", "20%", "22,5%"], correct: 3, explanation: "Até 180 dias, a alíquota é a máxima da tabela regressiva: 22,5%." },
-            { id: 49, category: "BLOCO 6", text: "Dividendos recebidos por pessoa física são, atualmente:", options: ["Tributados na fonte", "Isentos de IR", "Tributados na declaração", "Considerados ganho de capital"], correct: 1, explanation: "Pela legislação atual, dividendos distribuídos por ações são isentos de IR para pessoa física." },
-            { id: 50, category: "BLOCO 6", text: "(CASE) Cliente deseja alto retorno em curto prazo, com baixo risco. A conduta correta do profissional é:", options: ["Prometer rentabilidade", "Explicar que risco e retorno estão relacionados", "Oferecer ações", "Executar a ordem sem esclarecimentos"], correct: 1, explanation: "Não existe 'alto retorno, curto prazo e baixo risco' (tríade impossível). O profissional deve educar o cliente sobre a relação risco x retorno." },
-
-            // BLOCO 7 - Prática Avançada (40 Questões Extras)
-            { id: 51, category: "BLOCO 7 — Prática Avançada", text: "O PIB mede:", options: ["A inflação", "A soma de bens e serviços finais produzidos", "O déficit público", "O câmbio"], correct: 1, explanation: "PIB é a soma de riquezas, o termômetro da atividade econômica." },
-            { id: 52, category: "BLOCO 7", text: "Política Fiscal Contracionista envolve:", options: ["Aumento de gastos", "Aumento de impostos e corte de gastos", "Queda de juros", "Emissão de moeda"], correct: 1, explanation: "Visa reduzir a demanda agregada e controlar a inflação/dívida." },
-            { id: 53, category: "BLOCO 7", text: "Chinese Wall serve para evitar:", options: ["Lavagem de dinheiro", "Conflito de interesses e Insider Trading", "Risco de mercado", "Tributação"], correct: 1, explanation: "Barreira que segrega informações entre áreas conflitantes do banco." },
-            { id: 54, category: "BLOCO 7", text: "PGBL é ideal para quem:", options: ["Faz declaração simplificada", "É isento", "Faz declaração completa", "Quer liquidez diária"], correct: 2, explanation: "Permite dedução fiscal de até 12% da renda bruta." },
-            { id: 55, category: "BLOCO 7", text: "VGBL tributa:", options: ["Total", "Lucro", "Nada", "Entrada"], correct: 1, explanation: "IR incide apenas sobre os rendimentos (lucro), não sobre o principal." },
-            { id: 56, category: "BLOCO 7", text: "Smurfing é técnica de:", options: ["Investimento", "Lavagem de dinheiro (fracionamento)", "Hedge", "Análise"], correct: 1, explanation: "Fracionar grandes depósitos em pequenos para evitar alertas." },
-            { id: 57, category: "BLOCO 7", text: "COAF deve ser comunicado:", options: ["Com aviso ao cliente", "Sem aviso ao cliente", "Apenas com ordem judicial", "Mensalmente"], correct: 1, explanation: "Sigilo absoluto é obrigatório (Tipping Off é proibido)." },
-            { id: 58, category: "BLOCO 7", text: "API vencido:", options: ["Permite recomendar", "Impede recomendação", "Permite resgate apenas", "Bloqueia conta"], correct: 1, explanation: "Instituição não pode recomendar produtos sem perfil válido." },
-            { id: 59, category: "BLOCO 7", text: "Viés da Ancoragem:", options: ["Seguir outros", "Fixar em preço passado", "Medo", "Confiança"], correct: 1, explanation: "Investidor se prende a um valor de referência irrelevante." },
-            { id: 60, category: "BLOCO 7", text: "IGP-M é muito usado em:", options: ["Aluguel", "Selic", "Ações", "FGC"], correct: 0, explanation: "Índice de inflação que reajusta contratos de aluguel e energia." },
-            { id: 61, category: "BLOCO 7", text: "Juro Real positivo:", options: ["Nominal < Inflação", "Nominal > Inflação", "Igual Inflação", "Zero"], correct: 1, explanation: "Ganho acima da inflação, aumento do poder de compra." },
-            { id: 62, category: "BLOCO 7", text: "Debênture Incentivada:", options: ["Tem FGC", "Isenta IR", "Paga dividendo", "Risco zero"], correct: 1, explanation: "Isenta de IR para PF, financia infraestrutura." },
-            { id: 63, category: "BLOCO 7", text: "Ação ON dá direito a:", options: ["Dividendo fixo", "Voto e Tag Along", "Juros", "Resgate"], correct: 1, explanation: "Ordinária (ON) = Voto e Proteção na venda da empresa." },
-            { id: 64, category: "BLOCO 7", text: "Fundo Ações IR Resgate:", options: ["20%", "15%", "Isento", "Regressivo"], correct: 1, explanation: "Alíquota única de 15% no resgate." },
-            { id: 65, category: "BLOCO 7", text: "IOF zera em:", options: ["10 dias", "15 dias", "30 dias", "1 ano"], correct: 2, explanation: "A tabela regressiva do IOF vai do 1º ao 29º dia." },
-            { id: 66, category: "BLOCO 7", text: "Risco não sistemático:", options: ["Mercado", "Específico do ativo", "Dólar", "Inflação"], correct: 1, explanation: "Risco específico da empresa, eliminável com diversificação." },
-            { id: 67, category: "BLOCO 7", text: "Open Finance premissa:", options: ["Dado é do banco", "Dado é do cliente", "Proibido", "Pago"], correct: 1, explanation: "O cliente é dono dos seus dados e decide com quem compartilhar." },
-            { id: 68, category: "BLOCO 7", text: "Tesouro IPCA+ protege de:", options: ["Deflação", "Inflação", "Dólar", "Crédito"], correct: 1, explanation: "Paga juro real + IPCA, garantindo poder de compra." },
-            { id: 69, category: "BLOCO 7", text: "Come-cotas reduz:", options: ["Valor da cota", "Quantidade de cotas", "IR", "Taxa"], correct: 1, explanation: "O governo recolhe o imposto 'comendo' pedaços do investimento." },
-            { id: 70, category: "BLOCO 7", text: "Day Trade IR:", options: ["15%", "20%", "Isento", "22.5%"], correct: 1, explanation: "Alíquota de 20% sobre o lucro, sem isenção." },
-            { id: 71, category: "BLOCO 7", text: "Fundo Fechado:", options: ["Resgate a qualquer hora", "Só vende cota na bolsa", "Sem taxa", "Sem risco"], correct: 1, explanation: "Não permite resgate, cotas são negociadas no mercado secundário." },
-            { id: 72, category: "BLOCO 7", text: "CNSP regula:", options: ["Bancos", "Seguros", "Bolsa", "Dólar"], correct: 1, explanation: "Conselho Nacional de Seguros Privados." },
-            { id: 73, category: "BLOCO 7", text: "Lavagem fase 3:", options: ["Colocação", "Ocultação", "Integração", "Finalização"], correct: 2, explanation: "O dinheiro volta à economia com aparência lícita." },
-            { id: 74, category: "BLOCO 7", text: "Suitability analisa:", options: ["Só renda", "Só risco", "Financeiro, Objetivo, Conhecimento", "Idade"], correct: 2, explanation: "Os 3 pilares obrigatórios da análise de perfil." },
-            { id: 75, category: "BLOCO 7", text: "Efeito Manada:", options: ["Análise técnica", "Seguir a maioria", "Medo", "Ganância"], correct: 1, explanation: "Tomar decisão baseado no comportamento da massa." },
-            { id: 76, category: "BLOCO 7", text: "Política Fiscal:", options: ["Juros", "Gastos e Impostos", "Câmbio", "Crédito"], correct: 1, explanation: "Gestão do orçamento do governo." },
-            { id: 77, category: "BLOCO 7", text: "Swap Cambial:", options: ["Compra dólar", "Venda de proteção cambial pelo BC", "Turismo", "Ação"], correct: 1, explanation: "BC atua no mercado futuro para controlar volatilidade." },
-            { id: 78, category: "BLOCO 7", text: "Juros Compostos:", options: ["Linear", "Exponencial", "Fixo", "Decrescente"], correct: 1, explanation: "Juros sobre juros geram curva exponencial." },
-            { id: 79, category: "BLOCO 7", text: "LC (Letra de Câmbio):", options: ["Moeda", "Título de Financeira", "Ação", "Fundo"], correct: 1, explanation: "Renda fixa emitida por financeiras, com FGC." },
-            { id: 80, category: "BLOCO 7", text: "Mercado Primário:", options: ["Bolsa", "Emissão (IPO)", "Venda entre sócios", "Antigo"], correct: 1, explanation: "O dinheiro vai para o caixa da empresa emissora." },
-            { id: 81, category: "BLOCO 7", text: "Taxa Performance:", options: ["Sempre", "Se superar benchmark", "Se cair", "Na entrada"], correct: 1, explanation: "Prêmio de mérito para o gestor." },
-            { id: 82, category: "BLOCO 7", text: "Tabela Progressiva:", options: ["Tempo", "Salário/Renda", "Fixa", "Isenta"], correct: 1, explanation: "Segue a tabela do IR de salários, compensável na declaração." },
-            { id: 83, category: "BLOCO 7", text: "Resgate 721 dias:", options: ["22.5", "20", "17.5", "15"], correct: 3, explanation: "Alíquota mínima de RF para longo prazo." },
-            { id: 84, category: "BLOCO 7", text: "Correlação -1:", options: ["Andam juntos", "Andam opostos (Hedge)", "Sem relação", "Risco alto"], correct: 1, explanation: "Proteção perfeita (um sobe, o outro desce)." },
-            { id: 85, category: "BLOCO 7", text: "LGPD protege:", options: ["Dinheiro", "Dados pessoais", "Bancos", "Governo"], correct: 1, explanation: "Lei Geral de Proteção de Dados." },
-            { id: 86, category: "BLOCO 7", text: "ESG G significa:", options: ["Global", "Governança", "Geral", "Ganho"], correct: 1, explanation: "Governança Corporativa." },
-            { id: 87, category: "BLOCO 7", text: "FII Renda:", options: ["Tributada", "Isenta", "20%", "15%"], correct: 1, explanation: "Dividendos de FIIs são isentos para PF (regra geral)." },
-            { id: 88, category: "BLOCO 7", text: "Derivativo Hedge:", options: ["Especular", "Proteger", "Alavancar", "Perder"], correct: 1, explanation: "Usado para travar preço e evitar prejuízo." },
-            { id: 89, category: "BLOCO 7", text: "Split (Desdobramento):", options: ["Aumenta preço", "Cai preço, aumenta qtde", "Junta ações", "Paga dividendo"], correct: 1, explanation: "Divide a ação em várias, preço cai proporcionalmente." },
-            { id: 90, category: "BLOCO 7", text: "Previdência Regressiva 2 anos:", options: ["10%", "15%", "35%", "25%"], correct: 2, explanation: "Começa com alíquota punitiva de 35%." }
+            // --- DOCUMENTO 2 (Simulado CPA.pdf) ---
+            {c:"Manuela precisa de um veículo novo para entregar produtos da sua empresa. Ela busca uma linha de crédito com pagamento parcelado em prestações fixas, sem vincular ao seu salário ou envolver arrendamento.", q:"O produto que melhor atende à sua necessidade seria:", d:"Fácil", o:[
+                {t:"O crédito Direto ao Consumidor (CDC), pois trata-se de uma operação destinada à aquisição de bens com pagamento em prestações fixas.", v:true, e:"A definição resume as características do CDC. Como ela não quer arrendamento (Leasing) e não quer vínculo ao salário (Consignado), o CDC automotivo é perfeito."},
+                {t:"O Leasing, pois é uma operação com opção de compra ao final do prazo.", v:false, e:"O leasing configura arrendamento (o bem fica no nome do banco até o fim do contrato). Ela não quer arrendamento."},
+                {t:"O empréstimo consignado, pois o desconto é feito do salário.", v:false, e:"Manuela é dona da empresa e solicitou explicitamente sem vínculo com salário."},
+                {t:"A carta de crédito, pois representa uma garantia bancária.", v:false, e:"A carta de crédito é pra importação/exportação ou consórcio, não se encaixa como 'linha de empréstimo' convencional neste cenário."}
+            ]},
+            {c:"Paulo tem duas opções: CDB (12% a.a.) e COE atrelado ao Ibovespa. No COE, se IBOV <= 125k recebe o capital; entre 125k e 145k ganha a variação; etc.", q:"A análise correta sobre o investimento de Paulo é:", d:"Difícil", o:[
+                {t:"Para que o COE apresente remuneração bruta superior ao CDB, o índice deve atingir ou superar 140.000 pontos.", v:true, e:"CDB dá 12% = R$ 1120. Fórmula COE: 1000 * [1 + (140.000 - 125.000)/125.000] = 1000 * [1 + 15/125] = 1000 * 1,12 = 1120. Acima de 140.000 o COE ganha."},
+                {t:"Caso IBOV atinja 160.000, a rentabilidade líquida do COE será de 17,425%.", v:false, e:"A rentabilidade bruta seria 20,5%. O IR para 360 dias é 20%. Líquido = 16,4%."},
+                {t:"A tributação de IR do COE é inferior à do CDB.", v:false, e:"Ambos usam a Tabela Regressiva de Renda Fixa."},
+                {t:"O COE e CDB têm garantia do FGC.", v:false, e:"O COE NÃO tem garantia do FGC."}
+            ]},
+            {c:"Ana busca aplicar no exterior, mas teme riscos cambiais no Brasil (regime flutuante).", q:"A melhor explicação a Ana sobre riscos de investimentos em moeda estrangeira é que os riscos são:", d:"Média", o:[
+                {t:"Potencialmente significativos, pois no regime cambial flutuante, as taxas de câmbio podem variar de acordo com as condições de mercado, impactando os investimentos de Ana.", v:true, e:"Regime flutuante significa que o dólar/euro oscila livremente ao sabor do mercado, adicionando forte volatilidade (risco cambial) à carteira internacional."},
+                {t:"Baixos, pois o regime cambial flutuante previne grandes oscilações.", v:false, e:"O regime flutuante é o que mais tem oscilações. Câmbio fixo que as previne."},
+                {t:"Eliminados pelo Banco Central, que fixa a taxa de câmbio...", v:false, e:"O BC não fixa taxa de câmbio no Brasil."},
+                {t:"Reduzidos, já que o Banco Central mantém a taxa estável...", v:false, e:"O BC atua para reduzir disfunções extremas, mas não mantém o câmbio em nível fixo."}
+            ]},
+            {c:"Entidade de Previdência quer investir em ETFs de moedas digitais e teme os riscos.", q:"Um impacto potencial sobre a gestão de riscos caso invista em moedas digitais seria:", d:"Média", o:[
+                {t:"A inclusão de ETFs de moedas digitais aumentará o risco caudal (tail risk) do portfólio, devido à presença de caudas gordas (fat tails).", v:true, e:"Ativos como Bitcoin possuem histórico de quedas e altas bruscas (caudas gordas na curva de distribuição normal), aumentando a chance de eventos extremos na carteira."},
+                {t:"Reduzir o desvio-padrão dos retornos caso tenham correlação positiva.", v:false, e:"Para reduzir risco e diversificar, a correlação deve ser NEGATIVA ou baixa, não positiva."},
+                {t:"Ajustar posições a qualquer momento evitando oscilações...", v:false, e:"As quedas cripto são tão rápidas (flash crashes) que ter mercado 24h não evita perdas (slippage)."},
+                {t:"Se correlação for zero, não impacta o risco do portfólio.", v:false, e:"Sempre impacta a volatilidade total da carteira se o ativo for volátil, mesmo com correlação zero."}
+            ]},
+            {c:"Explicação sobre a importância da administração fiduciária nos Fundos Imobiliários.", q:"A melhor explicação sobre a administração fiduciária nos FIIs seria:", d:"Média", o:[
+                {t:"O administrador fiduciário é responsável pela supervisão do cumprimento das normas, além de zelar pelos interesses dos cotistas, mesmo que não participe diretamente da gestão dos imóveis.", v:true, e:"O Administrador é o 'guardião' legal do fundo, cuidando da burocracia e CVM. O Gestor é quem decide qual imóvel comprar ou alugar."},
+                {t:"O administrador garante o cumprimento e atua na valorização dos imóveis.", v:false, e:"Valorização de imóveis é trabalho do Gestor e do Property Manager."},
+                {t:"O administrador fiduciário tem como função principal garantir a valorização e gestão eficiente.", v:false, e:"Confundiu Administrador com Gestor."},
+                {t:"A função do administrador é basicamente a manutenção física dos imóveis.", v:false, e:"Isso é função da administração de property (manutenção)."}
+            ]},
+            {c:"Marcos quer investir na caderneta de poupança.", q:"A melhor explicação sobre a caderneta de poupança para Pessoas Físicas seria:", d:"Média", o:[
+                {t:"Oferece liquidez imediata e isenção de impostos. É garantida pelo FGC até R$ 250 mil. Rentabilidade baseia-se na Selic ou em 0,5% a.m. + TR. Não é ideal para crescimento patrimonial a longo prazo.", v:true, e:"Resumo perfeito e técnico da Poupança."},
+                {t:"Possui liquidez limitada, pois os rendimentos são pagos apenas no aniversário.", v:false, e:"Liquidez é imediata (pode sacar a qualquer hora), embora perca o rendimento dos dias proporcionais."},
+                {t:"Possui alta rentabilidade e não possui garantias.", v:false, e:"Rentabilidade é muito baixa e TEM garantia do FGC sim."},
+                {t:"Tributada apenas no resgate antecipado.", v:false, e:"Poupança é isenta de IR para PF em qualquer cenário."}
+            ]},
+            {c:"Dolores tem investimentos nas instituições A e B e aderiu ao Open Finance.", q:"A adesão ao Open Finance impactaria as indicações de investimento, pois permite que a gerente Gabriela:", d:"Fácil", o:[
+                {t:"Tenha uma visão consolidada de todos os investimentos, facilitando uma avaliação mais precisa do perfil de risco global e recomendações mais adequadas.", v:true, e:"A base do Open Finance é permitir ao consultor ver os ativos do cliente em todos os bancos, otimizando o Portfólio (não oferecendo risco duplicado)."},
+                {t:"Visualize os dados, mas a análise ficará limitada, pois o sistema não considera volatilidade e prazo.", v:false, e:"Pelo Open Finance os dados vêm granulares, permitindo qualquer análise técnica por parte da corretora."},
+                {t:"Veja apenas investimentos de renda fixa.", v:false, e:"A fase de investimentos do Open Finance abrange todas as classes de ativos."},
+                {t:"Acesse automaticamente todos os dados, sem consentimento explícito.", v:false, e:"Falso, o coração do Open Finance é o Consentimento explícito do cliente."}
+            ]},
+            {c:"Maria quer fazer intercâmbio na Europa e vai juntar R$ 1.200/mês na Poupança.", q:"A principal limitação que ela precisa compreender é:", d:"Média", o:[
+                {t:"A variação cambial pode aumentar o valor necessário em reais, e a rentabilidade da poupança não acompanha essa variação.", v:true, e:"A meta dela é em Euro. A poupança rende em Reais. Se o Euro disparar, a poupança não alcança o objetivo (Risco Cambial)."},
+                {t:"A rentabilidade pode não acompanhar a inflação brasileira.", v:false, e:"A preocupação maior dela é com o Euro, não com o IPCA brasileiro."},
+                {t:"A poupança oferece baixa liquidez.", v:false, e:"Oferece altíssima liquidez."},
+                {t:"A poupança é sujeita a impostos...", v:false, e:"A poupança é isenta."}
+            ]},
+            {c:"Lucas (conservador) quer Títulos Públicos com proteção contra disparada inflacionária.", q:"O gerente sugeriu que ele investisse em:", d:"Média", o:[
+                {t:"NTN-B", v:true, e:"A NTN-B (Tesouro IPCA+) remunera o investidor com a variação do IPCA (inflação) mais uma taxa real. Preserva 100% o poder de compra."},
+                {t:"LTN", v:false, e:"LTN é o Tesouro Prefixado. Se a inflação disparar, ele perde dinheiro em termos reais."},
+                {t:"CDB", v:false, e:"CDB é título Privado (bancário), não Público."},
+                {t:"LCA", v:false, e:"LCA é título Privado (agronegócio do banco), não Público."}
+            ]},
+            {c:"José é moderado e quer investir em Debêntures para obter mais rentabilidade. Porém, ele deve evitar o tipo que possui componente de renda variável.", q:"Considerando a demanda de José, ele deve evitar as:", d:"Média", o:[
+                {t:"Debêntures conversíveis", v:true, e:"Debêntures Conversíveis dão o direito de serem trocadas por ações da empresa. Ações são Renda Variável."},
+                {t:"Debêntures com garantia flutuante", v:false, e:"Garantia não interfere no tipo de rentabilidade, continuam sendo Renda Fixa."},
+                {t:"Debêntures atreladas à taxa DI", v:false, e:"Taxa DI (pós-fixada) é Renda Fixa, não Variável."},
+                {t:"Debêntures incentivadas", v:false, e:"Têm isenção de IR e seguem IPCA ou DI, totalmente Renda Fixa."}
+            ]},
+            {c:"Carlos usa estratégia 'buy and hold' (comprar e esquecer). Uma OPA (Oferta Pública de Aquisição) acontece. Uma corretora usa um chatbot de IA.", q:"No contexto da OPA, a principal vantagem do chatbot para Carlos avaliar a oferta é:", d:"Fácil", o:[
+                {t:"Permite obter um resumo das informações do edital (preço e prazos), facilitando a análise dos impactos no portfólio.", v:true, e:"Editais da CVM são complexos. O chatbot resume datas, prêmio e regras, auxiliando a decisão do investidor 'buy and hold' de aceitar ou não a OPA."},
+                {t:"Elimina a necessidade de consulta ao edital...", v:false, e:"Um IA não elimina a fonte primária oficial. O investidor não pode abrir mão do edital legal."},
+                {t:"Traça o perfil e indica se é compatível com o buy and hold.", v:false, e:"O chatbot não define perfil nem faz recomendações conclusivas, ele extrai informações."},
+                {t:"Informa se o prêmio oferecido está próximo ao valor intrínseco, sugerindo aceitação.", v:false, e:"O chatbot não é analista CNPI, ele não calcula valuation nem dá call de compra/venda."}
+            ]},
+            {c:"Diogo quer Crédito Consignado. Ele tem dúvida sobre o valor máximo que pode ser descontado diretamente do salário.", q:"A explicação correta a ser fornecida pelo gerente é:", d:"Fácil", o:[
+                {t:"A margem consignável, pois se refere ao valor máximo que pode ser descontado do salário para pagamento das prestações.", v:true, e:"A Margem Consignável (geralmente 30% a 35% do salário líquido) é a trava legal que protege o trabalhador do superendividamento em empréstimos com desconto em folha."},
+                {t:"A margem livre...", v:false, e:"Margem livre é o que sobrou da margem consignável, não é o teto máximo legal da lei."},
+                {t:"A margem negativa...", v:false, e:"Termo não usual; significa apenas que ele estourou o limite e não pode pegar mais."},
+                {t:"A margem de garantia...", v:false, e:"Utilizada na B3 em operações futuras, nada a ver com consignado."}
+            ]},
+            {c:"Júlia (Compliance de Banco) nota remessa internacional de alto valor atípica. A LGPD protege os dados, mas a lei de PLD (Prevenção à Lavagem de Dinheiro) exige comunicação.", q:"A decisão de Júlia deve ser:", d:"Média", o:[
+                {t:"Comunicar a operação suspeita às autoridades competentes (COAF), pois a LGPD permite o compartilhamento quando há obrigação legal para prevenção.", v:true, e:"O crime de Lavagem de Dinheiro e as leis do COAF sobrepõem-se à LGPD no quesito de notificação às autoridades. Não há quebra de sigilo irregular quando reportado ao COAF."},
+                {t:"Solicitar a autorização do cliente antes de compartilhar...", v:false, e:"Comunicação de PLD é SECRETA (Tip-off não é permitido), você nunca avisa o cliente."},
+                {t:"Arquivar a transação sem reportar enquanto não houver provas.", v:false, e:"A instituição reporta SUSPEITAS, não precisa de 'provas cabais'. O COAF que investiga."},
+                {t:"Informar outras instituições financeiras...", v:false, e:"O reporte é exclusivo ao órgão regulador/COAF, não para a concorrência."}
+            ]},
+            {c:"Cliente quer reduzir a volatilidade de uma carteira que tem muita Bolsa (B3), sem vender as ações, alocando R$ 5 mi em um fundo multimercado descorrelacionado das ações.", q:"A subclasse de fundo multimercado mais alinhada à necessidade é:", d:"Difícil", o:[
+                {t:"Fundo Multimercado Juros e Moedas.", v:true, e:"Essa estratégia (Macro focada só em juros futuros e câmbio) não opera bolsa. Logo, a correlação com a B3 tende a ser baixíssima (ou até negativa em caso de stress), servindo de hedge e reduzindo a volatilidade da carteira."},
+                {t:"Fundo Multimercado Macro.", v:false, e:"Fundos Macro operam muita bolsa direcionalmente (compram ou vendem IBOV), o que traria mais do mesmo risco."},
+                {t:"Fundo Multimercado Long and Short Neutro.", v:false, e:"Opera exclusivamente Ações, apesar de buscar neutralidade, estaria colocando mais ações na carteira."},
+                {t:"Fundo Multimercado Livre.", v:false, e:"Pode ter 100% de ações e oscilar violentamente junto com a B3."}
+            ]},
+            {c:"Gabriela só investe na poupança e quer entender como a Taxa Selic impacta seus rendimentos.", q:"Henrique deve informá-la de que:", d:"Média", o:[
+                {t:"Quando a taxa Selic está igual ou abaixo de 8,5% ao ano, a remuneração da poupança é de 70% da Selic mais a Taxa Referencial (TR), podendo render menos que outros fixos.", v:true, e:"A famosa 'Nova regra da Poupança': Selic <= 8.5%, rende 70% da Selic + TR. Selic > 8.5%, rende 0.5% ao mês + TR. Nos cenários baixos, o CDB vence fácil a poupança."},
+                {t:"Independentemente da Selic, a poupança sempre rende 0,5% a.m. + TR...", v:false, e:"Isso era a regra antiga (antes de 2012). Hoje só se aplica se Selic > 8.5%."},
+                {t:"A rentabilidade da poupança é diretamente influenciada pela inflação...", v:false, e:"A poupança é blindada ao IPCA na fórmula, ela acompanha a Selic/TR."},
+                {t:"A TR é sempre positiva e adiciona valor fixo...", v:false, e:"A TR ficou ZERADA por muitos anos no Brasil (2018 a 2021). Não é fixa."}
+            ]},
+            {c:"Rafael quer títulos lastreados em crédito imobiliário. Tem dúvida sobre o que ocorre se os mutuários (devedores do imóvel) derem calote na Letra Hipotecária (LH).", q:"Fernanda deve explicar que:", d:"Média", o:[
+                {t:"O banco emissor é responsável pelo pagamento do título, independentemente do desempenho dos créditos imobiliários que o lastreiam.", v:true, e:"Títulos como LCI e LH são promessas de pagamento DO BANCO. Se o devedor do imóvel der calote no banco, o banco assume o prejuízo e paga o investidor normalmente."},
+                {t:"O Fundo Garantidor de Créditos (FGC) cobre o saldo investido até R$ 250 mil...", v:false, e:"Cuidado: LH tem FGC sim (como a LCI), porém a explicação mais direta sobre o risco dos *mutuários imobiliários* recai sobre o passivo do Banco. (A banca ANBIMA exige o conhecimento da responsabilidade do emissor principal)."},
+                {t:"Os créditos imobiliários que lastreiam a LH são separados do patrimônio do banco...", v:false, e:"Falso, quem tem segregação e regime fiduciário blindado (Patrimônio de Afetação) é o CRI, não a LH/LCI do balanço do banco."},
+                {t:"O investidor pode resgatar o título a qualquer momento sem perda...", v:false, e:"A LH possui carência regulamentar estrita."}
+            ]},
+            {c:"André ouviu falar em Debêntures, CRI e CRA (emitidos por empresas não-financeiras). Teme a falta do FGC.", q:"Mônica deve esclarecer que:", d:"Fácil", o:[
+                {t:"O investidor assume o risco de crédito do emissor, pois esses títulos não possuem cobertura do FGC.", v:true, e:"Títulos corporativos puros (Debentures, CRI, CRA) são garantidos APENAS pela empresa que os emite (Ambev, Petrobras, etc) e garantias reais, NÃO TEM FGC."},
+                {t:"Esses títulos são garantidos pelo FGC...", v:false, e:"FGC cobre produtos de BANCOS e Caixas, não de empresas corporativas ou securitizadoras."},
+                {t:"A rentabilidade, em certos casos, pode ser garantida pelo governo...", v:false, e:"Governo só garante Títulos Públicos (Tesouro Direto)."},
+                {t:"O investidor pode resgatar imediatamente ao emissor...", v:false, e:"Empresas emitem títulos de longo prazo (5-10 anos) sem recompra garantida. Se quiser sair, tem que vender para outro no mercado."}
+            ]},
+            {c:"Marcelo quer investir numa debênture do setor elétrico e acha que, por ser desse setor, é sempre segura e garantida.", q:"Rodrigo deve esclarecer que a segurança desse investimento dependerá de:", d:"Média", o:[
+                {t:"O tipo de garantia oferecida pelo emissor, pois algumas possuem proteção adicional (Real, Flutuante), enquanto outras dependem exclusivamente da solidez (Quirografária, Subordinada).", v:true, e:"A segurança de uma debênture reside 1) na solidez da empresa e 2) na sua Garantia (Real é a mais forte, depois Flutuante, Quirografária e Subordinada)."},
+                {t:"O setor de atuação da empresa... pois setor elétrico sempre possui menor risco.", v:false, e:"Setor elétrico é bom, mas empresas quebram lá também (ex: Light)."},
+                {t:"A obrigatoriedade de recompra pelo emissor antes do vencimento...", v:false, e:"Não existe essa obrigatoriedade."},
+                {t:"A isenção fiscal nas debêntures incentivadas torna mais seguro...", v:false, e:"Isenção fiscal só melhora a rentabilidade líquida, o risco de calote (crédito) continua o mesmo."}
+            ]},
+            {c:"Rafael possui ações e notou que o pagamento dos Juros sobre Capital Próprio (JCP) creditado em sua conta foi MENOR que o valor anunciado pela empresa.", q:"Carolina deve esclarecer que:", d:"Média", o:[
+                {t:"Os JCPs são tributados na fonte a uma alíquota de 15% de Imposto de Renda, reduzindo o valor líquido recebido pelo investidor.", v:true, e:"JCP é considerado despesa financeira pra empresa (abate IR dela), mas quem paga o pato é o acionista, que sofre retenção de 15% de IR na fonte. Diferente dos Dividendos, que são líquidos e isentos de IR."},
+                {t:"As empresas pagam JCPs em datas distintas dos dividendos, gerando diferença...", v:false, e:"A data não altera o valor do JCP."},
+                {t:"Os JCPs são ajustados conforme a taxa Selic...", v:false, e:"O limite de dedução pela empresa tem a ver com TJLP/Selic, mas o valor descontado do cliente é puro Imposto de Renda."},
+                {t:"O investidor pode solicitar a restituição do IR descontado...", v:false, e:"É tributação Exclusiva na Fonte e definitiva para PF. Não há restituição na declaração."}
+            ]},
+            {c:"Vinícius atende cliente que viu sua empresa anunciar desdobramento de ações (1 para 5). Ele quer saber o que vai ocorrer.", q:"Em um desdobramento de ações (split), o efeito para o investidor será:", d:"Média", o:[
+                {t:"O número de ações aumentará proporcionalmente (multiplica por 5), enquanto o preço unitário se ajustará (divide por 5) para manter o valor total investido inalterado.", v:true, e:"Ex: Tinha 100 ações a R$ 50 = R$ 5.000. Desdobrou 1:5. Agora tem 500 ações a R$ 10. O total continua R$ 5.000. Serve para dar 'liquidez' facilitando compra de pequenos lotes."},
+                {t:"O número de ações permanecerá o mesmo, mas o preço médio... ajustado para cima.", v:false, e:"Isso não existe."},
+                {t:"O investidor terá um prejuízo imediato...", v:false, e:"O financeiro total é neutralizado matematicamente."},
+                {t:"O grupamento é o contrário do desdobramento, mas em ambos o valor total sempre aumenta.", v:false, e:"O valor total fica inalterado em ambos."}
+            ]},
+            {c:"Paula adquiriu um COE atrelado ao IBOV, prazo 540 dias. A rentabilidade bruta foi de 40%.", q:"Considerando a tributação do COE para 540 dias, a rentabilidade líquida foi de:", d:"Média", o:[
+                {t:"33,0%", v:true, e:"COE tributa como Renda Fixa Regressiva. Prazo de 540 dias entra na faixa 'De 361 a 720 dias', cuja alíquota é 17,5%. O ganho é de 40%. Descontando 17,5% de 40% (ou seja, 40 * 0.175 = 7%). Fica 40 - 7 = 33% de lucro líquido."},
+                {t:"32,0%", v:false, e:"Esse cálculo usou 20% (alíquota para até 360 dias)."},
+                {t:"31,0%", v:false, e:"Esse cálculo usou 22,5% (para até 180 dias)."},
+                {t:"34,0%", v:false, e:"Esse cálculo usou 15% (para mais de 720 dias)."}
+            ]},
+            {c:"Luís abriu poupança aplicando R$ 1 milhão. Um mês depois (aniversário). A TR foi 0,1715% a.m. A Selic estava 11,25% a.a.", q:"O saldo da conta de Luís após 1 mês será:", d:"Média", o:[
+                {t:"R$ 1.006.723,58", v:true, e:"Como a Selic está acima de 8,5% a.a., a poupança rende 0,5% a.m. MAIS a TR. Juros compostos: 1.000.000 * (1+0,5%) * (1+0,1715%) = 1.000.000 * 1,005 * 1,001715 = R$ 1.006.723,575."},
+                {t:"R$ 1.006.715,00", v:false, e:"Soma simples (0.5 + 0.1715 = 0.6715 * 1M). A lei manda usar Juros Compostos (Fator multiplicativo)."},
+                {t:"R$ 1.006.545,45", v:false, e:"Cálculo usando 70% da Selic. Mas Selic está > 8.5%, logo a regra é 0.5% + TR."},
+                {t:"R$ 1.009.350,65", v:false, e:"Rendeu a Selic inteira (erro absurdo)."}
+            ]},
+            {c:"Natália quer investir sem risco de perda do capital, mas quer potencial atrelado. Paulo ofereceu um COE.", q:"Um fator essencial que Natália deve considerar antes de aplicar em um COE é:", d:"Média", o:[
+                {t:"A liquidez pode ser limitada, pois o resgate antes do vencimento pode não ser garantido ou estar sujeito a deságio (perda no mercado secundário).", v:true, e:"A principal barreira dos COEs é que eles são 'Travados'. Se você vender antes do prazo (3 a 5 anos), o banco recompra a preço de mercado (marcação a mercado), que normalmente resulta em perdas amargas."},
+                {t:"O investimento conta com FGC.", v:false, e:"COE JAMAIS tem FGC."},
+                {t:"A tributação segue regras de previdência...", v:false, e:"Segue Renda Fixa."},
+                {t:"O produto protege integralmente o capital garantindo não sofrer perdas.", v:false, e:"Depende da estrutura (se é COE Capital Protegido ou COE Capital em Risco), não é garantido 100% de nascença."}
+            ]},
+            {c:"Reunião sobre fundos. O investidor quer entender a segmentação entre classes e subclasses.", q:"Diante da dúvida, Carla esclarece que:", d:"Média", o:[
+                {t:"Um fundo pode ter subclasses como Alta Liquidez (D+1) e Longo Prazo (D+30), permitindo que diferentes perfis escolham a melhor opção mantendo a política de investimento (a classe).", v:true, e:"A CVM 175 trouxe os 'Anexos' (Classes de Risco, ex: Ações, Renda Fixa) e as Subclasses (público alvo diferente, taxas diferentes, prazos diferentes). Uma mesma carteira (Classe) atende a todos através das Subclasses."},
+                {t:"As classes de cotas e as subclasses compartilham o mesmo patrimônio...", v:false, e:"Classes diferentes TÊM patrimônios segregados independentes. Subclasses é que compartilham a mesma classe."},
+                {t:"As subclasses representam divisões independentes e seguem estratégias distintas...", v:false, e:"As subclasses seguem A MESMA estratégia da Classe mãe, só muda taxa/liquidez."},
+                {t:"Não há distinção prática entre classes e subclasses...", v:false, e:"Existe grande distinção."}
+            ]},
+            {c:"Mário quer expandir operações usando o Real Digital (Drex). Interessou-se pela 'programabilidade' via Smart Contracts.", q:"Um impacto da programabilidade do Real Digital para seus negócios é:", d:"Média", o:[
+                {t:"A introdução de contratos inteligentes permitirá que Mário desenvolva produtos e serviços financeiros personalizados a um custo menor, melhorando o acesso e a oferta de serviços.", v:true, e:"O DREX usa a tecnologia blockchain/DLT para programar o dinheiro (ex: esse real só é liberado se você entregar a mercadoria). Isso cria produtos absurdamente baratos e automáticos."},
+                {t:"A implementação reduzirá os custos... mas não influenciará a personalização.", v:false, e:"Contratos inteligentes são extremamente personalizáveis."},
+                {t:"Eliminará os riscos das transações financeiras, garantindo segurança absoluta.", v:false, e:"Nenhuma tecnologia garante risco financeiro 'zero' absoluto (fraudes sociais ainda existem)."},
+                {t:"Resultará na padronização dos produtos limitando a personalização.", v:false, e:"Falso, é exatamente o oposto: hiper-personalização."}
+            ]},
+            {c:"Nelson tem 40 anos, conservador. A taxa Selic do Copom subiu. Sua carteira atual: 35k Pós-Fixado, 25k Pré, 5k FII, 15k Ações, 10k Câmbio.", q:"Com base nesse cenário de alta da Selic, a melhor opção para Nelson seria:", d:"Fácil", o:[
+                {t:"Aumentar sua posição em ativos pós-fixados (CDI/Selic) e reduzir sua posição em investimentos atrelados ao IBOVESPA.", v:true, e:"A Selic subindo torna o CDI super rentável com risco zero. Com isso, os grandes investidores fogem da Bolsa (IBOVESPA) derrubando as Ações. Para um conservador, ficar no Pós é a melhor decisão matemática e de perfil."},
+                {t:"Aumentar posição em IBOVESPA e reduzir no câmbio.", v:false, e:"Juros em alta machucam muito o IBOVESPA (dinheiro sai da bolsa pra renda fixa)."},
+                {t:"Montar posição comprada no câmbio (Dólar) e reduzir prefixados.", v:false, e:"Juros altos ATRAEM dólares (gringo vem surfar nossos 10.5%), o que faz o dólar cair (valorizar o Real). Comprar dólar com juro subindo no Brasil costuma ser furada."},
+                {t:"Aumentar prefixados e compradas no câmbio.", v:false, e:"Prefixados já comprados se desvalorizam na marcação a mercado quando a Selic sobe fortemente."}
+            ]},
+            {c:"Carlos explica a clientes sobre as Letras de Crédito Imobiliário (LCI). O cliente quer saber sobre segurança e destinação de recursos.", q:"Carlos explica que os recursos captados pela LCI devem ser:", d:"Média", o:[
+                {t:"Vinculados a ativos específicos, garantindo que a instituição tenha lastro suficiente em créditos imobiliários para honrar compromissos.", v:true, e:"A LCI não é 'dinheiro livre' pro banco. Ele é obrigado por lei a pegar 100% daquele dinheiro e colocar em financiamentos de imóveis (lastro). Isso blinda um pouco a operação geral."},
+                {t:"Utilizados conforme a estratégia de gestão do emissor, sem necessidade de comprovação.", v:false, e:"Isso é o CDB. LCI exige comprovação (lastro imobiliário obrigatório)."},
+                {t:"Protegidos integralmente por um fundo garantidor, independentemente do valor.", v:false, e:"O FGC protege LCIs até um limite rigoroso (250 mil por banco/CPF), não é 'independentemente do valor'."},
+                {t:"Mantidos exclusivamente em caixa até o vencimento.", v:false, e:"Dinheiro em caixa não rende, o banco empresta no financiamento imobiliário pra ganhar o spread."}
+            ]},
+            {c:"André notou que o preço do seu ETF na bolsa (cotação de mercado) descolou muito do seu valor patrimonial justo (NAV) durante o pregão.", q:"Para avaliar a origem dessa diferença de preço, ele identifica o fator determinante, que é:", d:"Fácil", o:[
+                {t:"Redução da liquidez dos ativos subjacentes, dificultando o ajuste eficiente entre preço e referência.", v:true, e:"O Formador de Mercado (Market Maker) garante que a Cota na B3 ande colada na cesta das ações dentro do ETF. Mas se a bolsa seca e os ativos lá dentro ficam sem negócios, o Market Maker tem dificuldade de arbitrar, abrindo o spread (descolamento do NAV)."},
+                {t:"Erro na metodologia de cálculo do índice de referência.", v:false, e:"A B3/S&P raramente erram cálculo, é totalmente automatizado."},
+                {t:"O aumento do volume de negociação do ETF, ampliando a diferença.", v:false, e:"Mais liquidez = MAIS eficiência, logo o ETF cravaria o preço exato da cesta."},
+                {t:"Impacto de um evento corporativo em uma única ação...", v:false, e:"O NAV é calculado online pegando os eventos corporativos no ato. Não gera descolamento do ETF per se."}
+            ]},
+            {c:"Fundo de Investimento Referenciado DI possui uma Classe B com Subclasses: 1(investe pouco em privado), 2(isenta tx adm acima de X reais), 3(alta liquidez).", q:"Para orientar seus clientes, Rafael precisa compreender que:", d:"Média", o:[
+                {t:"Algumas subclasses permitem alocação limitada em títulos privados, enquanto outras focam na redução de custos para investidores de grande porte ou na gestão da liquidez para minimizar resgates.", v:true, e:"A grande beleza das subclasses (nova CVM 175) é oferecer 'sabores' diferentes de condições de negócio da MESMA ESTRATÉGIA MÃE, adequando a grandes ou pequenos CPFs."},
+                {t:"Todas as cotas seguem as mesmas regras, diferenciando-se apenas pelo prazo.", v:false, e:"O enunciado diz claramente que diferem em taxas e exposição a privado."},
+                {t:"A classe mais conservadora investe apenas em fundos...", v:false, e:"O enunciado diz que a conservadora investe em títulos públicos federais diretamente."},
+                {t:"Os que evitam volatilidade devem escolher as subclasses com ativos privados.", v:false, e:"Ativos privados TÊM mais volatilidade e risco de crédito que ativos do Governo."}
+            ]},
+            {c:"Carlos (37 anos). Objetivo 1: carro em 2 anos. Objetivo 2: Aposentadoria em 28 anos. Vai investir 1.500/mês.", q:"O fator essencial que ele precisa considerar sobre o horizonte de investimento é que:", d:"Fácil", o:[
+                {t:"O tempo dedicado a cada objetivo impacta a escolha, demandando liquidez e segurança no curto prazo e tolerância ao risco no longo.", v:true, e:"Dinheiro para daqui a 2 anos não pode ir pra Bolsa, pois se cair 40%, ele não compra o carro. Mas para 28 anos, ele PODE (e deve) aguentar solavancos da Bolsa para ter rentabilidade real alta."},
+                {t:"Investir em renda fixa garante a segurança para ambos os objetivos...", v:false, e:"Renda fixa para 28 anos é conservador demais e pode render menos que a inflação no longo prazo."},
+                {t:"Para alcançar objetivo de curto prazo, pode investir em ativos mais voláteis para ter maior retorno rápido.", v:false, e:"Mito clássico. No curto prazo é onde se exige MENOS risco e MAIS liquidez."},
+                {t:"Aposentadoria pode ser mantida com baixa diversificação.", v:false, e:"Qualquer aposentadoria exige altíssima diversificação para aguentar décadas de ciclos econômicos."}
+            ]},
+            {c:"Aristides, 59 anos, vai se aposentar. Tem esposa e um filho de 15 anos. Quer VGBL, minimizar IR e ter sucessão líquida e garantida para a família se ele faltar.", q:"Com base nisso, Aristides deve optar por:", d:"Fácil", o:[
+                {t:"Uma renda mensal vitalícia reversível ao cônjuge, com continuidade para menores...", v:true, e:"Essa modalidade paga ele pro resto da vida. Se morrer, paga a esposa pro resto da vida. Se ela morrer e o filho for de menor, paga o filho até os 21. É a proteção blindada para a família inteira."},
+                {t:"Resgate total... reinvestindo o montante...", v:false, e:"Dinheiro vivo entra no Inventário. Trava tudo, paga advogado, paga ITCMD. Previdência passa direto."},
+                {t:"Renda mensal vitalícia reversível apenas ao beneficiário indicado (filho).", v:false, e:"Ele deixaria a esposa de 55 anos sem nada garantido da previdência."},
+                {t:"Renda mensal vitalícia com prazo mínimo garantido...", v:false, e:"Se ele viver 10 anos (prazo), depois de 10 anos, se morrer, ninguém recebe nada. Risco altíssimo."}
+            ]},
+            {c:"Patrícia, pequena empresa. Dúvida entre Instituição de Pagamento (taxa baixa, liquidação rápida) ou Banco Tradicional (relacionamento pra pegar crédito futuro).", q:"A orientação mais adequada deve:", d:"Média", o:[
+                {t:"Sugerir a combinação de uma instituição de pagamento para as operações de recebimento e o banco para facilitar o acesso a crédito quando necessário.", v:true, e:"Em finanças para PJ, maximiza-se a eficiência. Venda de balcão rodando em máquina/link barato (Instituição de Pagamento), mas concentrando domicílio bancário ou fluxo financeiro em um Bancão para ter rating e limite de crédito estrutural."},
+                {t:"Indicar a instituição de pagamento apenas...", v:false, e:"Ignora que a empresa precisa crescer e precisará de linhas fortes como capital de giro ou BNDES."},
+                {t:"Reforçar o uso exclusivo do banco...", v:false, e:"Paga taxas mais altas na rotina de recebíveis desnecessariamente."},
+                {t:"Recomendar a instituição e procurar crédito depois no mercado.", v:false, e:"Construir rating leva tempo. Abrir conta e usar produtos do banco constrói histórico vital."}
+            ]},
+            {c:"Cláudia, 35 anos. Renda de 120k/ano. Usa Declaração Simplificada. Vai investir 20k/ano em previdência.", q:"O consultor provavelmente indicará:", d:"Fácil", o:[
+                {t:"O VGBL, pois ele é mais vantajoso para quem faz a declaração simplificada, e o imposto incide apenas sobre os rendimentos no resgate.", v:true, e:"Regra de bolso ANBIMA: Usa declaração Simplificada (onde o governo já dá 20% de dedução padrão) = Faça sempre VGBL. Fazer PGBL significa ser tributado 2 vezes no Principal."},
+                {t:"O PGBL, para deduzir 14.400...", v:false, e:"Ela não usa Completa, logo a Receita joga fora as deduções de recibo. Ela perderia muito dinheiro."},
+                {t:"O VGBL, para deduzir 20k na declaração...", v:false, e:"VGBL não deduz NADA na declaração de ajuste."},
+                {t:"O PGBL sempre será melhor...", v:false, e:"Como dito, para a simplificada, o PGBL é uma armadilha destruidora de patrimônio."}
+            ]},
+            {c:"Eduardo investiu 12 anos em VGBL. Saldo: 400k (250k aportes + 150k rendimento). Tabela Regressiva (acima de 10 anos = 10%). Ele resgata R$ 100 mil.", q:"O valor do imposto de renda retido no resgate é de:", d:"Média", o:[
+                {t:"R$ 3.750,00", v:true, e:"VGBL tributa SÓ a rentabilidade. Rentabilidade total é 150k do montante de 400k (Isso é 37,5% da pizza). Logo, nos 100k resgatados, apenas 37,5k são rendimentos (os outros 62,5k são devolução do seu próprio dinheiro). Alíquota é 10%. Logo: 10% de 37.500 = R$ 3.750."},
+                {t:"R$ 10.000,00", v:false, e:"Isso seria se fosse o PGBL (10% sobre o total dos 100k)."},
+                {t:"R$ 15.000,00", v:false, e:"Alíquota de 15% sobre o total, erro duplo."},
+                {t:"R$ 25.000,00", v:false, e:"PGBL com tabela progressiva ou cálculo estapafúrdio."}
+            ]},
+            {c:"Lucas quer investir herança e exige um fundo de investimento que tenha 'garantia de rentabilidade mínima'. Gerente diz que isso não existe.", q:"Uma justificativa para a resposta do gerente é que:", d:"Média", o:[
+                {t:"A regulamentação da CVM 175 proíbe qualquer instituição de garantir rentabilidade mínima em fundos de investimento, independentemente do perfil.", v:true, e:"A CVM não permite que um fundo de investimento garanta cota futura, garantindo zero risco de perda ou rentabilidade fixa. Fundo é 'best effort' (melhor esforço). Quem dá garantia é ativo bancário emitido (CDB, LCI)."},
+                {t:"Alguns bancos garantem se o cliente assinar o prospecto...", v:false, e:"É proibido por regulação."},
+                {t:"Restrição se aplica a todos os produtos...", v:false, e:"CDB e Poupança (produtos financeiros bancários) PODEM ser garantidos ou prefixados. A CVM 175 é para FUNDOS."},
+                {t:"Proibição apenas para investidores não qualificados.", v:false, e:"Mesmo fundo exclusivo de bilionário não pode cravar 'rentabilidade garantida'."}
+            ]},
+            {c:"Roberta investirá em FIIs. FII Alpha (Tx Adm 1,5%, sem subscrição) e FII Beta (Tx Adm 1%, Taxa de Subscrição/Entrada 2%).", q:"Uma explicação clara sobre as diferenças:", d:"Fácil", o:[
+                {t:"O FII Beta pode ser mais vantajoso para investimentos de longo prazo, pois sua taxa de administração é menor, compensando o custo inicial da subscrição.", v:true, e:"A taxa de subscrição ou ingresso (2%) machuca no mês 1. Porém a taxa de Adm roda TODO ano por décadas. Em longo prazo, o Fundo Beta pagará 0,5% A MENOS por ano, batendo fácil a taxa de 2% que só pagou uma vez."},
+                {t:"FII Alpha tem custo total menor para qualquer horizonte...", v:false, e:"No curto prazo ele é barato. Em 20 anos, não."},
+                {t:"Taxa de Adm do FII Beta será reduzida...", v:false, e:"Taxas de administração não caem magicamente pelo tempo, são fixas no contrato."},
+                {t:"A taxa de subscrição será reembolsada...", v:false, e:"Não é caução, a taxa de ingresso não é devolvida."}
+            ]},
+            {c:"Luciana: renda líquida 8k. Gastos essenciais 6k. Tem 10k guardados. Quer planejar a reserva de emergência.", q:"A orientação mais adequada é:", d:"Média", o:[
+                {t:"Aumentar sua reserva para um valor entre R$ 36.000,00 e R$ 72.000,00, correspondente a 6 a 12 meses de despesas essenciais, e mantê-la em ativos de alta liquidez e baixo risco.", v:true, e:"Reserva de emergência deve cobrir os gastos BÁSICOS de sobrevivência por 6 a 12 meses (R$ 6 mil x 6 = R$ 36 mil / R$ 6 mil x 12 = 72 mil) aplicada em algo que possa sacar de noite se precisar (CDB Liquidez, Tesouro Selic)."},
+                {t:"Destinar 25% até atingir 100k...", v:false, e:"100k engessa muito capital da Luciana com a Selic parada; e não há regra cravada de '25%'."},
+                {t:"Transferir para fundo de previdência privada...", v:false, e:"Previdência trava o dinheiro, não pode sacar na mesma hora (liquidez baixa para emergências)."},
+                {t:"Manter os 10k e focar em maior rentabilidade...", v:false, e:"10k pagam apenas 1 mês e meio. Se ela ficar desempregada e quebrar o carro, ela afunda."}
+            ]},
+            {c:"Eduardo e Juliana, casal com filhos. Renda de 15k, despesa de 12k. Sem plano. Querem organizar.", q:"A orientação mais adequada inicia-se com:", d:"Fácil", o:[
+                {t:"Elaborar um orçamento detalhado, estabelecendo metas para poupança, reserva de emergência e investimentos de longo prazo.", v:true, e:"Planejamento financeiro não é sair comprando Ações ou LCI. O primeiro passo é diagnóstico do orçamento e criação de metas factíveis antes da alocação técnica."},
+                {t:"Direcionar o excedente apenas para amortização de dívidas antes de investir...", v:false, e:"O caso não mencionou que eles estão afogados em dívidas caras."},
+                {t:"Reduzir imediatamente os gastos essenciais para aumentar...", v:false, e:"Gastos essenciais (aluguel, água, luz, escola) não são fáceis de 'reduzir imediatamente', o ideal é equilibrar luxos primeiro."},
+                {t:"Priorizar aplicações de alta rentabilidade acelerando...", v:false, e:"Família sem reserva nunca deve ir para alto risco no início."}
+            ]},
+            {c:"Renato usa Smart Contract (DeFi) na venda de imóvel. Comprador pede pagar em duas vezes (30% no ato e 70% na posse). Renato quer segurança contra calote.", q:"O Smart Contract poderia ser configurado para:", d:"Média", o:[
+                {t:"Liberar o pagamento inicial (30%) ao vendedor e condicionar a transferência definitiva da propriedade no Blockchain ao recebimento integral dos 70%.", v:true, e:"A magia do contrato inteligente é o 'If... Then...'. Ele só engatilha a assinatura do Token da casa na carteira do comprador QUANDO bater o saldo faltante. É o famoso 'Escrow' automático sem cartório."},
+                {t:"Transferir imediatamente a propriedade... garantindo o saldo...", v:false, e:"Em blockchain, transferiu o Token, já era. Se a pessoa sumir, ele fica sem o imóvel e sem os 70%."},
+                {t:"Executar apenas após pagamento total...", v:false, e:"Ele aceitou receber 30% como sinal. A plataforma tem que ser flexível a parcelas em Escrow."},
+                {t:"Registrar com cláusula de reversão caso não pague o segundo...", v:false, e:"Reversão em Blockchain exige assinar do outro lado. Se o comprador usar chave privada e esconder, ninguém desfaz."}
+            ]},
+            {c:"Carlos, 62 anos. 70% Ações, 30% Renda Fixa. Quer se aposentar em 3 anos, precisa sacar o dinheiro para viver e teme a volatilidade da bolsa.", q:"A recomendação para a carteira é:", d:"Fácil", o:[
+                {t:"Reduzir a exposição a ativos de alto risco, realocando parte da carteira para produtos de renda fixa de longo prazo e investimentos com menor volatilidade.", v:true, e:"Fase de acumulação acabou. Começou a de Usufruto. Volatilidade e Usufruto não se misturam. Tem que colocar o barco na renda fixa segura."},
+                {t:"Manter a carteira inalterada...", v:false, e:"70% em bolsa prestes a aposentar é uma bomba-relógio psicológica e financeira."},
+                {t:"Transferir 100% para liquidez diária...", v:false, e:"Liquidez diária não se protege da inflação longa na aposentadoria (que dura 30 anos). Tem que ter Tesouro IPCA longo."},
+                {t:"Aumentar diversificação com ações internacionais...", v:false, e:"Mais variação de câmbio = mais úlcera para o aposentado."}
+            ]},
+            {c:"Eduardo, 45 anos, provedor da família. Quer segurança para os filhos. Já tem investimentos longos.", q:"O principal motivo para um Seguro de Vida Tradicional, mesmo já tendo investimentos, é:", d:"Fácil", o:[
+                {t:"Garantir liquidez imediata e previsível para seus dependentes no caso de falecimento, sem depender da venda de ativos ou resgate demorado via inventário.", v:true, e:"A morte trava todas as contas em banco no instante em que sai a certidão. O dinheiro do fundo, do CDB, tudo vai pro Inventário. O Seguro de Vida paga a apólice DENTRO DE 30 DIAS direto na conta dos beneficiários e isento de IR. É o salva-vidas."},
+                {t:"Aumentar o patrimônio gerando rentabilidade...", v:false, e:"Seguro não é investimento (mesmo os resgatáveis têm péssima rentabilidade)."},
+                {t:"Evitar o planejamento sucessório...", v:false, e:"Ele deve fazer sucessório de qualquer forma. O seguro complementa ajudando nas custas dos advogados/ITCMD."},
+                {t:"Reduzir custos, pois seguro é mais barato que manter reserva...", v:false, e:"Reserva atende ele VIVO (se for demitido). Seguro atende a família se ele MORRER."}
+            ]},
+            {c:"Roberto tem Seguro de 200k. Franquia Fixa de 10k. Coparticipação de 20% do restante. Incêndio de 100k.", q:"O valor que Roberto pagará do próprio bolso será:", d:"Média", o:[
+                {t:"R$ 28.000, pois além da franquia fixa (10k), ele ainda paga 20% do valor restante (20% de 90k = 18k). 10k + 18k = R$ 28 mil.", v:true, e:"Matemática exata: Dano de 100 mil. Ele paga a franquia seca: 10 mil. Ficam 90 mil de dano. Ele tem coparticipação (participação obrigatória) de 20%. Ele tira 18 mil (20% de 90). O seguro paga o resto (72k). Bolso dele: 10+18 = 28k."},
+                {t:"R$ 20.000, pois Roberto apenas precisa pagar a coparticipação.", v:false, e:"Omitiu a Franquia fixa."},
+                {t:"R$ 10.000, pois a seguradora cobre o restante.", v:false, e:"Omitiu a Coparticipação."},
+                {t:"R$ 50.000...", v:false, e:"Erro total de matemática."}
+            ]},
+            {c:"Luciano analisa 3 fundos. Fundo Alfa: aplica critérios como complemento, relatórios sem auditoria. Fundo Beta: Política formal, comitê ESG, filtros rigorosos. Fundo Gama: certificações, boas práticas mas sem política formal ESG.", q:"O Fundo mais adequado para ser classificado formalmente como Sustentável (IS) é:", d:"Fácil", o:[
+                {t:"Fundo Beta, pois possui uma política ESG estruturada, com critérios definidos e mecanismos de supervisão para garantir a aplicação.", v:true, e:"Para a CVM/ANBIMA chancelar um Fundo com a sigla oficial 'IS', ele não pode apenas 'dizer que faz o bem'. Tem que ter Comitê, Metodologia escrita de Filtros e auditorias consistentes (Fundo Beta)."},
+                {t:"Fundo Alfa...", v:false, e:"Greenwashing. Sem auditoria independente, é conversa."},
+                {t:"Fundo Gama...", v:false, e:"Boas práticas isoladas, sem formalização na tese de investimentos regulatória."},
+                {t:"Nenhum, pois deve aplicar exclusivamente em empresas neutras.", v:false, e:"Pode aplicar em empresas em transição energética também."}
+            ]},
+            {c:"Leonardo avalia dois investimentos para cliente conservador: Produto A (risco levemente maior, mas dá incentivo bônus para Leonardo) e B (seguro e sem bônus). Ambos atendem ao perfil.", q:"Considerando princípios éticos sobre conflitos de interesse, Leonardo deve:", d:"Média", o:[
+                {t:"Apresentar ambas as opções de forma equilibrada, explicando claramente os riscos e benefícios, e se abster de mencionar o incentivo pessoal, focando no cliente.", v:true, e:"Conflito de interesse se gere sendo isento e transparente COM OS PRODUTOS. Não se recomenda empurrar o A, nem esconder o A. Mostra-se o cenário real."},
+                {t:"Apresentar o A como a melhor opção, justificando pela rentabilidade.", v:false, e:"Isso é priorizar a própria meta bancária antes do interesse do cliente."},
+                {t:"Informar o cliente sobre seu incentivo pessoal antes de apresentar...", v:false, e:"A remuneração interna do banco ao funcionário não é dado útil ao cliente, pode gerar desconfiança e violar sigilo salarial interno."},
+                {t:"Recomendar apenas o B...", v:false, e:"Omitir um produto aderente fere a qualidade e amplitude da assessoria."}
+            ]},
+            {c:"Roberto atendeu cliente, confirmou o perfil cadastral (conservador longo prazo) e ofereceu Renda Fixa. O cliente comentou 'queria ver diversificação'. Roberto cortou dizendo 'Renda fixa é a ideal pro seu perfil' e encerrou.", q:"Considerando personalização do atendimento, a conduta de Roberto é:", d:"Fácil", o:[
+                {t:"Restrita, pois considerou apenas os dados previamente coletados e não explorou o interesse do cliente em diversificação, limitando a personalização.", v:true, e:"Suitability e Planejamento são processos VIVOS. Se o cliente fala na mesa que quer abrir a mente pra diversificar, o Assessor precisa reavaliar ou explicar, não cortar a conversa focado apenas na folha de cadastro."},
+                {t:"Coerente, já que a recomendação foi baseada nas informações...", v:false, e:"Ignorou a fala direta do cliente durante o ato."},
+                {t:"Adequada, visto que o cliente não questionou diretamente...", v:false, e:"O cliente instigou a conversa ('entender melhor')."},
+                {t:"Insuficiente, pois limitar-se ao perfil restringe o acesso do cliente...", v:false, e:"Não é questão de restringir acesso do cliente, ele PODE ter fundos, a questão é a conduta engessada (restrita) do gerente na entrevista."}
+            ]},
+            {c:"Gabriel recebeu bônus, quer usar para dar entrada num imóvel após vender o carro em até 3 meses. Amigo sugeriu Poupança.", q:"A análise mais adequada sobre a recomendação do amigo seria que:", d:"Fácil", o:[
+                {t:"A poupança pode ser uma boa opção porque é isenta de imposto de renda para pessoas físicas e permite resgate imediato, sendo vantajosa no curtíssimo prazo.", v:true, e:"Para exatos 2 a 3 meses, o CDB, o Tesouro ou outros fundos teriam retenção de IR de 22,5% e IOF (se <30 dias). A poupança não desconta nada, então não é de todo mal para o prazo curtíssimo com isenção."},
+                {t:"Não recomendada, a rentabilidade do CDB seria superior.", v:false, e:"Líquido de IR em 3 meses, o CDB a 100% não fica brutalmente longe. A recomendação do amigo não é um absurdo."},
+                {t:"Boa opção porque tem rendimento diário e não sofre IR.", v:false, e:"Não tem rendimento diário (é de aniversário)."},
+                {t:"Recomendação não válida, poupança tem carência de 90 dias.", v:false, e:"Poupança não possui carência para resgate."}
+            ]}
         ];
 
-        // --- APP LOGIC (Safe Initialization) ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load saved answers
-            let userAnswers = JSON.parse(localStorage.getItem('simulado90Progress')) || {};
+        // --- LÓGICA DO SIMULADO ---
+        let currentState = {
+            currentIndex: 0,
+            score: 0,
+            answers: {},
+            order: [],
+            isShuffled: false
+        };
 
-            // Render Nav Links
-            const nav = document.getElementById('nav-links');
-            const mobileMenu = document.getElementById('mobile-menu-items');
+        let currentOptionsOrder = [];
+        let hasAnsweredCurrent = false;
+
+        const screens = {
+            home: document.getElementById('screen-home'),
+            quiz: document.getElementById('screen-quiz'),
+            result: document.getElementById('screen-result'),
+            pause: document.getElementById('screen-pause')
+        };
+        const headerActions = document.getElementById('header-actions');
+
+        function hideAllScreens() {
+            Object.values(screens).forEach(s => s.classList.add('hidden-screen'));
+        }
+
+        function showScreen(screenName) {
+            hideAllScreens();
+            screens[screenName].classList.remove('hidden-screen');
+            if(screenName === 'quiz') {
+                headerActions.classList.remove('hidden');
+            } else {
+                headerActions.classList.add('hidden');
+            }
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function init() {
+            const savedState = localStorage.getItem('simulado_cpa_state_full');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    if (parsed && parsed.order && parsed.order.length > 0 && parsed.currentIndex < parsed.order.length) {
+                        currentState = parsed;
+                        document.getElementById('btn-continue').classList.remove('hidden');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('simulado_cpa_state_full');
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('simulado_cpa_state_full', JSON.stringify(currentState));
+        }
+
+        function clearState() {
+            localStorage.removeItem('simulado_cpa_state_full');
+            currentState = {
+                currentIndex: 0,
+                score: 0,
+                answers: {},
+                order: [],
+                isShuffled: false
+            };
+        }
+
+        function goHome() {
+            if (currentState.order && currentState.order.length > 0 && currentState.currentIndex < currentState.order.length) {
+                saveState(); // Ensure progress is saved
+                document.getElementById('btn-continue').classList.remove('hidden');
+            }
+            showScreen('home');
+        }
+
+        function startQuiz(shuffle = false) {
+            clearState();
+            currentState.isShuffled = shuffle;
             
-            if (nav && mobileMenu) {
-                let categories = [...new Set(questionsData.map(q => q.category))];
-                
-                const links = categories.map((cat, index) => `
-                    <a href="#cat-${index}" class="block py-2 px-3 text-sm text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 rounded transition-colors text-left">
-                        ${cat}
-                    </a>
-                `).join('');
-                
-                nav.innerHTML = links;
-                mobileMenu.innerHTML = links;
+            let baseOrder = Array.from({length: db.length}, (_, i) => i);
+            if (shuffle) {
+                currentState.order = shuffleArray(baseOrder);
+            } else {
+                currentState.order = baseOrder;
+            }
+            
+            saveState();
+            renderQuestion();
+            showScreen('quiz');
+        }
+
+        function resumeQuiz() {
+            if (currentState.currentIndex >= currentState.order.length) {
+                showResults();
+            } else {
+                renderQuestion();
+                showScreen('quiz');
+            }
+        }
+
+        function pauseQuiz() {
+            saveState();
+            showScreen('pause');
+        }
+
+        function resetQuiz() {
+            clearState();
+            document.getElementById('btn-continue').classList.add('hidden');
+            showScreen('home');
+        }
+
+        function renderQuestion() {
+            hasAnsweredCurrent = false;
+            document.getElementById('btn-next').classList.add('hidden');
+            document.getElementById('feedback-container').classList.add('hidden');
+            
+            const qIndex = currentState.order[currentState.currentIndex];
+            const qData = db[qIndex];
+            
+            document.getElementById('question-counter').innerText = `Questão ${currentState.currentIndex + 1} de ${currentState.order.length}`;
+            
+            const diffSpan = document.getElementById('question-difficulty');
+            diffSpan.innerText = qData.d || 'Média';
+            diffSpan.className = 'px-3 py-1 rounded-full text-sm font-semibold border';
+            if(qData.d === 'Fácil') diffSpan.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+            else if(qData.d === 'Difícil') diffSpan.classList.add('bg-red-100', 'text-red-800', 'border-red-300');
+            else diffSpan.classList.add('bg-yellow-100', 'text-yellow-800', 'border-yellow-300');
+
+            const ctxEl = document.getElementById('question-context');
+            if (qData.c) {
+                ctxEl.innerText = qData.c;
+                ctxEl.classList.remove('hidden');
+            } else {
+                ctxEl.classList.add('hidden');
             }
 
-            // Render Questions
-            renderQuestions(userAnswers);
-            updateScore(userAnswers);
-        });
+            document.getElementById('question-text').innerText = qData.q;
 
-        function renderQuestions(userAnswers) {
-            const container = document.getElementById('questions-container');
-            if (!container) return;
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+            
+            let optIndices = [0, 1, 2, 3];
+            if (currentState.isShuffled) {
+                optIndices = shuffleArray(optIndices);
+            }
+            currentOptionsOrder = optIndices;
 
-            let currentCategory = "";
-            let html = "";
-            let catIndex = -1;
+            const labels = ['A', 'B', 'C', 'D'];
 
-            questionsData.forEach((q) => {
-                // Category Header
-                if (q.category !== currentCategory) {
-                    currentCategory = q.category;
-                    catIndex++;
-                    html += `
-                        <div id="cat-${catIndex}" class="mt-12 mb-6 border-b-2 border-indigo-100 pb-2 scroll-mt-24">
-                            <h3 class="text-xl font-bold text-indigo-800 flex items-center gap-2">
-                                <i data-lucide="layers" class="w-5 h-5"></i> ${currentCategory}
-                            </h3>
-                        </div>
-                    `;
-                }
-
-                const userAnswer = userAnswers[q.id];
-                const isAnswered = userAnswer !== undefined;
-                const isCorrect = isAnswered && userAnswer === q.correct;
+            optIndices.forEach((originalIndex, index) => {
+                const optData = qData.o[originalIndex];
                 
-                let feedbackHtml = '';
-                let borderClass = 'border-slate-200 hover:border-indigo-200';
-                let bgClass = 'bg-white';
-
-                if (isAnswered) {
-                    if (isCorrect) {
-                        borderClass = 'border-green-400';
-                        bgClass = 'bg-green-50/40';
-                        feedbackHtml = `
-                            <div class="mt-4 p-4 bg-green-100 rounded-lg border border-green-200 text-sm fade-in-up">
-                                <div class="font-bold text-green-700 flex items-center gap-2 mb-1">
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i> Resposta Correta!
-                                </div>
-                                <div class="text-green-800 leading-relaxed">${q.explanation}</div>
-                            </div>`;
-                    } else {
-                        borderClass = 'border-red-400';
-                        bgClass = 'bg-red-50/40';
-                        feedbackHtml = `
-                            <div class="mt-4 p-4 bg-red-100 rounded-lg border border-red-200 text-sm fade-in-up">
-                                <div class="font-bold text-red-700 flex items-center gap-2 mb-1">
-                                    <i data-lucide="x-circle" class="w-4 h-4"></i> Incorreto.
-                                </div>
-                                <div class="text-red-800 mb-2">A resposta correta é: <strong>${['A','B','C','D'][q.correct]}</strong></div>
-                                <div class="text-slate-700 bg-white/50 p-2 rounded border border-red-200 leading-relaxed"><strong>Explicação:</strong> ${q.explanation}</div>
-                            </div>
-                        `;
-                    }
-                }
-
-                html += `
-                    <div class="p-6 rounded-xl border-2 shadow-sm ${borderClass} ${bgClass} transition-all duration-300 relative group">
-                        <div class="flex items-start gap-3 mb-4">
-                            <span class="bg-indigo-600 text-white font-bold w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0 text-sm shadow-sm">${q.id}</span>
-                            <h3 class="text-lg font-medium text-slate-800 leading-snug">${q.text}</h3>
-                        </div>
-                        
-                        <div class="space-y-2 ml-0 md:ml-11">
-                            ${q.options.map((opt, optIdx) => {
-                                const isSelected = userAnswer === optIdx;
-                                
-                                let optionClass = "p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer flex items-center gap-3 transition-colors select-none";
-                                
-                                if (isAnswered) {
-                                    const isThisCorrect = q.correct === optIdx;
-                                    if (isSelected && isCorrect) optionClass = "p-3 rounded-lg border-2 border-green-500 bg-green-100 font-medium flex items-center gap-3 shadow-sm";
-                                    else if (isSelected && !isCorrect) optionClass = "p-3 rounded-lg border-2 border-red-500 bg-red-100 flex items-center gap-3 shadow-sm";
-                                    else if (!isSelected && isThisCorrect && !isCorrect) optionClass = "p-3 rounded-lg border border-green-500 bg-green-50 flex items-center gap-3 opacity-70"; 
-                                    else optionClass = "p-3 rounded-lg border border-slate-100 opacity-40 flex items-center gap-3 pointer-events-none grayscale";
-                                }
-
-                                return `
-                                    <div class="${optionClass}" onclick="handleAnswer(${q.id}, ${optIdx})">
-                                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? (isCorrect ? 'border-green-600 bg-green-600' : 'border-red-600 bg-red-600') : ''}">
-                                            <span class="text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-400'}">${['A','B','C','D'][optIdx]}</span>
-                                        </div>
-                                        <span class="text-sm text-slate-700 flex-1">${opt}</span>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                        <div class="ml-0 md:ml-11">
-                            ${feedbackHtml}
-                        </div>
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-400 hover:bg-blue-50 focus:outline-none flex gap-4 items-start shadow-sm transition';
+                btn.onclick = () => selectOption(originalIndex, index);
+                btn.id = `opt-btn-${index}`;
+                
+                btn.innerHTML = `
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center border border-slate-300" id="opt-label-${index}">
+                        ${labels[index]}
+                    </div>
+                    <div class="text-slate-700 font-medium leading-relaxed mt-1">
+                        ${optData.t}
                     </div>
                 `;
+                optsContainer.appendChild(btn);
             });
 
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        function handleAnswer(qId, optIdx) {
-            let userAnswers = JSON.parse(localStorage.getItem('simulado90Progress')) || {};
-            if (userAnswers[qId] !== undefined) return; // Locked if answered
-            
-            userAnswers[qId] = optIdx;
-            localStorage.setItem('simulado90Progress', JSON.stringify(userAnswers));
-            
-            renderQuestions(userAnswers);
-            updateScore(userAnswers);
-        }
-
-        function updateScore(userAnswers) {
-            const answered = Object.keys(userAnswers).length;
-            const correct = Object.keys(userAnswers).filter(id => {
-                const q = questionsData.find(q => q.id == id);
-                return q && userAnswers[id] === q.correct;
-            }).length;
-
-            const progressEl = document.getElementById('progress-count');
-            const scoreEl = document.getElementById('score-count');
-            
-            if(progressEl) progressEl.innerText = answered;
-            if(scoreEl) scoreEl.innerText = correct;
-        }
-
-        function resetSimulado() {
-            if(confirm("Deseja apagar todo o progresso e começar do zero?")) {
-                localStorage.removeItem('simulado90Progress');
-                renderQuestions({});
-                updateScore({});
+            if (currentState.answers[currentState.currentIndex]) {
+                const savedAns = currentState.answers[currentState.currentIndex];
+                const uiIndex = currentOptionsOrder.indexOf(savedAns.selectedOptionIndex);
+                selectOption(savedAns.selectedOptionIndex, uiIndex, true);
             }
         }
 
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            if(menu) menu.classList.toggle('hidden');
+        function selectOption(originalIndex, uiIndex, isRestoring = false) {
+            if (hasAnsweredCurrent && !isRestoring) return;
+            hasAnsweredCurrent = true;
+
+            const qIndex = currentState.order[currentState.currentIndex];
+            const qData = db[qIndex];
+            const isCorrect = qData.o[originalIndex].v;
+
+            if (!isRestoring) {
+                currentState.answers[currentState.currentIndex] = {
+                    selectedOptionIndex: originalIndex,
+                    isCorrect: isCorrect
+                };
+                if (isCorrect) currentState.score++;
+                saveState();
+            }
+
+            currentOptionsOrder.forEach((origIdx, uIdx) => {
+                const btn = document.getElementById(`opt-btn-${uIdx}`);
+                const label = document.getElementById(`opt-label-${uIdx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:border-blue-400', 'hover:bg-blue-50', 'border-slate-200', 'shadow-sm');
+                
+                const optData = qData.o[origIdx];
+
+                if (optData.v) {
+                    btn.classList.add('border-green-500', 'bg-green-50', 'shadow-md');
+                    label.classList.add('bg-green-600', 'text-white', 'border-green-700');
+                    label.classList.remove('bg-slate-100', 'text-slate-600');
+                } else if (uIdx === uiIndex && !isCorrect) {
+                    btn.classList.add('border-red-500', 'bg-red-50', 'shadow-md');
+                    label.classList.add('bg-red-600', 'text-white', 'border-red-700');
+                    label.classList.remove('bg-slate-100', 'text-slate-600');
+                } else {
+                    btn.classList.add('opacity-40');
+                }
+            });
+
+            const feedbackContainer = document.getElementById('feedback-container');
+            const fbTitle = document.getElementById('feedback-title');
+            const fbText = document.getElementById('feedback-text');
+
+            feedbackContainer.classList.remove('hidden', 'bg-green-100', 'border-green-500', 'text-green-800', 'bg-red-100', 'border-red-500', 'text-red-800');
+            
+            if (isCorrect) {
+                feedbackContainer.classList.add('bg-green-100', 'border-green-500', 'text-green-900');
+                fbTitle.innerHTML = '<i class="fas fa-check-circle"></i> Resposta Correta!';
+            } else {
+                feedbackContainer.classList.add('bg-red-100', 'border-red-500', 'text-red-900');
+                fbTitle.innerHTML = '<i class="fas fa-times-circle"></i> Resposta Incorreta!';
+            }
+
+            let explanation = `<strong>Por que?</strong> ${qData.o[originalIndex].e}`;
+            if (!isCorrect) {
+                const correctOpt = qData.o.find(o => o.v);
+                explanation += `<br><br><strong><i class="fas fa-lightbulb text-yellow-500"></i> Gabarito (Letra ${['A','B','C','D'][currentOptionsOrder.findIndex(i => i === qData.o.indexOf(correctOpt))]}):</strong> ${correctOpt.e}`;
+            }
+            fbText.innerHTML = explanation;
+
+            const btnNext = document.getElementById('btn-next');
+            if (currentState.currentIndex === currentState.order.length - 1) {
+                btnNext.innerHTML = 'Ver Resultado Final <i class="fas fa-flag-checkered ml-2"></i>';
+            } else {
+                btnNext.innerHTML = 'Próxima Questão <i class="fas fa-arrow-right ml-2"></i>';
+            }
+            btnNext.classList.remove('hidden');
         }
 
+        function nextQuestion() {
+            if (currentState.currentIndex < currentState.order.length - 1) {
+                currentState.currentIndex++;
+                saveState();
+                renderQuestion();
+                window.scrollTo(0,0);
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            clearState(); 
+            document.getElementById('btn-continue').classList.add('hidden');
+            
+            document.getElementById('score-correct').innerText = currentState.score;
+            document.getElementById('score-total').innerText = currentState.order.length;
+            
+            const percent = (currentState.score / currentState.order.length) * 100;
+            
+            showScreen('result');
+            
+            setTimeout(() => {
+                const bar = document.getElementById('score-bar');
+                bar.style.width = `${percent}%`;
+                if(percent >= 70) {
+                    bar.className = 'bg-green-500 h-4 rounded-full transition-all duration-1000';
+                } else if(percent >= 50) {
+                    bar.className = 'bg-yellow-500 h-4 rounded-full transition-all duration-1000';
+                } else {
+                    bar.className = 'bg-red-500 h-4 rounded-full transition-all duration-1000';
+                }
+            }, 100);
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
