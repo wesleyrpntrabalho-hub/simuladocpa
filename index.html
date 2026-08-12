@@ -18,67 +18,613 @@
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen overflow-hidden">
+<body class="text-slate-800 antialiased h-[100dvh] overflow-hidden">
     <div id="root" class="h-full"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useCallback, useMemo } = React;
 
         const questionsDB = [
-            { id: 1, diff: "Médio", text: "Jorge, estagiário em uma cooperativa de crédito, consulta Paulo, profissional CPA, para entender a diferença entre uma cooperativa de crédito e um banco cooperativo. Paulo explica que os papéis de ambas são bastante distintos... Para deixar mais explícita esta diferenciação, Paulo poderia explicar que a cooperativa:", options: ["atua como representante do banco cooperativo e este realiza a captação e a concessão de crédito.", "concentra serviços financeiros para pessoas jurídicas e o banco cooperativo atua com pessoas físicas.", "atende o cooperado (capta/empresta) e o banco cooperativo provê infraestrutura, liquidez e acesso a mercados.", "realiza operações de crédito e o banco cooperativo atua como intermediário direto no mercado financeiro."], answer: 2, explanation: "Gabarito: A cooperativa singular é quem interage com o cooperado na ponta, concedendo crédito, captando recursos e ofertando serviços diretamente. Já o banco cooperativo funciona como a 'espinha dorsal' do sistema, garantindo a infraestrutura de liquidez e acesso a mercados." },
-            { id: 2, diff: "Médio", text: "Durante o atendimento financeiro, Tereza, servidora pública, comenta que está avaliando participar de um plano de previdência complementar... Renata explica à cliente que esta modalidade (PGBL) é mais vantajosa quando a pessoa:", options: ["deseja que a tributação ocorra sobre os rendimentos no resgate, buscando aproveitar o aporte sem que a base seja o valor total acumulado.", "tem renda tributável e contribui ao regime oficial (INSS/RPPS), usando o plano para diferir até 12% da renda, via declaração completa de IR, e tributar o total no resgate/benefício.", "não possui renda tributável no ano e pretende usar o plano para reduzir imposto futuro, independentemente de contribuir para o regime oficial.", "atua como autônoma sem contribuição ao regime oficial e pretende usar o plano para organizar a poupança previdenciária, visando benefício fiscal."], answer: 1, explanation: "Gabarito: O PGBL permite diferir IR ao abater até 12% da renda bruta tributável do ano, desde que o cliente contribua para o INSS/RPPS. A tributação ocorre sobre o total resgatado no futuro." },
-            { id: 3, diff: "Médio", text: "Durante uma palestra, Marina foi questionada sobre ações do Banco Central no mercado monetário. Eles queriam entender qual é o objetivo dessas medidas. Marina explicou que essas medidas têm como objetivo:", options: ["fixar os juros de longo prazo e os preços do crédito, adotando intervenção direta nos contratos privados.", "assegurar a expansão contínua do crédito por metas de volume, a fim de garantir crescimento econômico.", "eliminar a volatilidade diária dos mercados financeiros por operações que neutralizam choques, sem alterar os juros.", "ajustar a quantidade de moeda no sistema, modulando a liquidez e orientando as taxas de juros de curto prazo."], answer: 3, explanation: "Gabarito: A política monetária atua sobre a liquidez e os juros de curto prazo por meio de instrumentos como operações de mercado aberto, compulsórios e redesconto." },
-            { id: 4, diff: "Médio", text: "Durante a divulgação de novas projeções fiscais, analistas destacaram o aumento das despesas primárias... O profissional CPA deve entender que a relação central entre as variáveis apresentadas é que:", options: ["o desequilíbrio fiscal eleva o risco-país, deteriora as expectativas de inflação e pressiona as taxas de juros, que tendem a crescer.", "o aumento das despesas públicas estimula permanentemente a atividade econômica, independentemente da origem do financiamento.", "o déficit fiscal é compensado automaticamente pela política monetária, mantendo neutros os efeitos sobre inflação e juros.", "a expansão do gasto público gera, por si só, equilíbrio entre arrecadação e consumo agregado no longo prazo."], answer: 0, explanation: "Gabarito: O desequilíbrio fiscal eleva o risco-país e pressiona os juros e a inflação para cima, reduzindo o espaço para investimentos produtivos." },
-            { id: 5, diff: "Médio", text: "Marcelo foi procurado por um cliente que mantém carteira em Tesouro Direto e multimercado. Após notícias de que o governo não fará ajuste fiscal... Marcelo deve explicar que essa decisão do governo tende a:", options: ["estimular o crescimento econômico sem impacto relevante sobre inflação e juros, favorecendo o desempenho de títulos públicos.", "reduzir a necessidade de financiamento do governo, aumentar a confiança dos investidores pelo aumento dos juros e contribuir para a valorização dos títulos públicos já emitidos.", "elevar a percepção de risco, pressionar inflação e juros e provocar desvalorização dos títulos de renda fixa já emitidos, afetando negativamente o desempenho de parte da carteira.", "produzir efeitos restritos às contas públicas, sem influência relevante sobre taxas de juros ou sobre os preços de ativos financeiros."], answer: 2, explanation: "Gabarito: Quando há percepção de descontrole fiscal, investidores exigem prêmios de risco maiores, pressionando taxas de juros. Com juros mais altos, o preço dos títulos já emitidos tende a cair (marcação a mercado)." },
-            { id: 6, diff: "Médio", text: "Ao comentar notícias recentes sobre endividamento público, alguns participantes perguntaram como esse tema se relaciona com juros e inflação. Luís explicou que:", options: ["o controle do endividamento público tende a preservar a confiança, embora sem efeito direto sobre crédito privado.", "o equilíbrio fiscal reduz o risco e as pressões sobre juros e inflação, criando um ambiente mais favorável ao investimento produtivo.", "o aumento das despesas públicas pode estimular a economia no curto prazo, ainda que eleve riscos fiscais no longo.", "a ampliação do gasto governamental reduz momentaneamente o desemprego, mas compromete a estabilidade macroeconômica futura."], answer: 1, explanation: "Gabarito: O equilíbrio fiscal reduz o risco-país, estabiliza juros e inflação e amplia a confiança do mercado." },
-            { id: 7, diff: "Médio", text: "Carolina explicou que no Brasil existem regras para conter riscos fiscais (LRF e novo arcabouço fiscal). No resumo de Carolina o efeito dessas medidas é:", options: ["manter disciplina fiscal ao limitar o avanço real das despesas, alinhando gastos à inflação.", "garantir previsibilidade ao exigir limites de endividamento e maior transparência na execução orçamentária.", "sustentar confiança ao reforçar regras de alocação de recursos e parâmetros de crescimento compatíveis com arrecadação.", "equilibrar contas públicas ao unir contenção de despesas, limites de dívida e controle da expansão dos gastos primários."], answer: 3, explanation: "Gabarito: Resume a lógica combinada: LRF (limites de dívida) + teto de gastos/arcabouço (contenção da despesa primária), compondo a sustentabilidade fiscal." },
-            { id: 8, diff: "Médio", text: "O Banco Central realizou uma operação compromissada para reduzir a quantidade de moeda em circulação e conter juros. Juliana informou ao cliente que a operação seria:", options: ["uma venda de títulos públicos com compromisso de recompra, em data e preço pré-pactuados.", "uma compra de títulos públicos com compromisso de revenda, em data e preço pré-pactuados.", "um empréstimo de títulos públicos com compromisso de pagamento de juros.", "uma venda de títulos públicos com opção compra, em data e preço pré-pactuados."], answer: 0, explanation: "Gabarito: É a compromissada de venda: o BC vende títulos hoje (enxugando liquidez) e se compromete a recomprar depois." },
-            { id: 9, diff: "Médio", text: "Sobre o Código de Regulação e Melhores Práticas da Anbima, Roberto explicou que um exemplo de norma presente no Código é:", options: ["reforçar principalmente os padrões fiduciários, deixando a padronização a critério da instituição.", "orientar governança e compliance para elevar a integridade, sem abranger concorrência leal.", "definir parâmetros de conduta que asseguram concorrência leal, padronização de procedimentos e maior qualidade das informações prestadas.", "padronizar comunicação para dar clareza ao investidor, sem cobrir conduta de mercado e concorrência leal."], answer: 2, explanation: "Gabarito: O Código visa complementar a regulação, estabelecendo padrões de conduta que promovem concorrência leal, padronização e melhor qualidade das informações." },
-            { id: 10, diff: "Médio", text: "Diante da preocupação com instabilidade no crédito, o profissional deve explicar aos participantes que o Bacen:", options: ["conduz políticas de crédito setoriais, definindo volumes de financiamento.", "adota normas prudenciais, regula a liquidez, promove medidas de estabilidade sistêmica e sustenta a confiança no sistema.", "padroniza a remuneração de ativos, estabelecendo retornos equivalentes para títulos no mercado secundário.", "centraliza a intermediação financeira, assumindo a concessão de crédito no lugar dos bancos."], answer: 1, explanation: "Gabarito: O BACEN atua com normas prudenciais, regulação da liquidez e medidas de estabilidade sistêmica." },
-            
-            { id: 11, diff: "Médio", text: "Uma empresa realiza IPO e a demanda superou a quantidade ofertada, resultando em rateio. Considerando a dinâmica do bookbuilding, conclui-se que:", options: ["o preço da ação se manterá estável após a listagem graças ao lote suplementar.", "a liquidez atinge seu pico durante o IPO e torna-se restrita no secundário.", "o rateio na oferta primária é pouco relevante para o preço no secundário.", "a demanda elevada no IPO tende a pressionar o preço na abertura do mercado secundário, em que a liquidez real se estabelece."], answer: 3, explanation: "Gabarito: A alta demanda não atendida no IPO (rateio) tende a criar pressão compradora no início das negociações, influenciando o preço no mercado secundário." },
-            { id: 12, diff: "Médio", text: "Joel explicou que em certos fundos as perdas podem superar o capital aplicado. Os investidores precisariam assinar um termo que é o:", options: ["termo de adesão e ciência de risco, que formaliza o conhecimento dos cotistas sobre a possibilidade de perdas superiores ao capital aplicado.", "termo de ciência e assunção de responsabilidade patrimonial ilimitada.", "termo de ciência e confirmação de interesse, registrado em meio digital.", "termo de autorização para movimentação de recursos."], answer: 0, explanation: "Gabarito: Segundo a Resolução CVM 175, ao ingressar no fundo, o cotista deve atestar via termo de adesão e ciência de risco que conhece a possibilidade de perdas superiores ao capital." },
-            { id: 13, diff: "Médio", text: "A companhia realizará um desdobramento de ações (cada ação passará a representar dez). A informação correta fornecida por Luísa é que:", options: ["não haverá alteração do número de ações no capital social. A participação ficará inalterada.", "não haverá aumento do número de ações. A participação e o capital social serão reduzidos.", "haverá aumento do número de ações no capital social da empresa. A participação de Tânia e o valor do capital social ficarão inalterados.", "haverá aumento do número de ações no capital social. A participação de Tânia será reduzida e o capital aumentado."], answer: 2, explanation: "Gabarito: Um desdobramento (split) aumenta o número de ações em circulação, mas o valor do capital social e a participação proporcional do acionista ficam inalterados." },
-            { id: 14, diff: "Fácil", text: "Pedro vai investir no 'Fundo de Investimento Plaza S/C'. A orientação correta é que a regularidade do fundo deve ser verificada junto:", options: ["ao Banco Central.", "à Comissão de Valores Mobiliários (CVM).", "à Bolsa B3.", "à Junta Comercial do estado."], answer: 1, explanation: "Gabarito: Fundos de investimento dependem de prévio registro na CVM (Art. 8º da Resolução 175)." },
-            { id: 15, diff: "Médio", text: "Teresa queria investir em títulos individuais após perda num fundo de crédito privado. Raquel explicou que a diversificação do fundo ajuda a:", options: ["assegurar retornos superiores ao fundo, quando comparado a ativos individuais.", "reduzir custos de administração e gerenciamento do fundo.", "permitir liquidez imediata semelhante à dos fundos de renda fixa de alta liquidez.", "reduzir o risco de perdas de crédito decorrentes do não pagamento de emissores individuais."], answer: 3, explanation: "Gabarito: A diversificação não elimina o risco, mas o dilui entre diversos emissores, mitigando o impacto de um calote (default) individual." },
-            { id: 16, diff: "Difícil", text: "Como a regulação recente da CVM garante que prejuízos em uma classe de fundo não afetem outra classe ou outros fundos do administrador?", options: ["segregação patrimonial.", "unificação contábil dos fundos.", "compensação de resultados.", "integração operacional entre classes."], answer: 0, explanation: "Gabarito: A Resolução CVM nº 175 estabelece a segregação patrimonial para classes de cotas, impedindo que obrigações de uma classe contaminem as demais." },
-            { id: 17, diff: "Médio", text: "César ouviu falar sobre PGBL e quer saber quais perfis se beneficiam dessa modalidade. Rogério esclarece que esse plano:", options: ["é isento de imposto no resgate, ocorrendo tributação só na acumulação.", "é voltado para quem declara o IR no modelo completo e busca deduzir contribuições até o limite legal anual.", "é indicado para quem utiliza o modelo simplificado de IR.", "é destinado a empregados de empresas patrocinadoras."], answer: 1, explanation: "Gabarito: O PGBL é voltado para quem declara no modelo completo, permitindo deduzir até 12% da renda bruta anual tributável. O IR no resgate incide sobre o total." },
-            { id: 18, diff: "Médio", text: "Beatriz, dentista (pró-labore de 1 salário mínimo), quer saber se o VGBL é adequado. João explica que o plano é adequado pois:", options: ["é voltado para quem busca deduzir até 12% da renda bruta anual.", "é voltado para quem participa de planos corporativos.", "é voltado para quem declara o IR no modelo simplificado e tributa apenas os rendimentos no resgate.", "é voltado para quem declara IR simplificado e tributa o valor total resgatado."], answer: 2, explanation: "Gabarito: O VGBL é para quem usa o modelo simplificado de IR. A tributação no resgate incide apenas sobre os rendimentos, não sobre o principal." },
-            { id: 19, diff: "Fácil", text: "Mauro quer iniciar benefício em previdência por tempo determinado e deixar o restante como herança. A modalidade de benefício é:", options: ["vitalício condicionado à expectativa de vida, sem reversão.", "variável, encerrado automaticamente em caso de morte do titular.", "garantido até o falecimento do titular, convertido em indenização única.", "fixado por prazo determinado, com continuidade ao(s) beneficiário(s) até o fim do período em caso de falecimento do titular."], answer: 3, explanation: "Gabarito: Na Renda Mensal por Prazo Certo, se o participante falecer antes do prazo, os beneficiários continuam recebendo até o fim do período estipulado." },
-            { id: 20, diff: "Fácil", text: "Marcos quer refinanciar a fatura do cartão. Camila esclarece que essa operação ocorre por parcelamento, onde:", options: ["as parcelas do cartão são fixas e o prazo é definido, com incidência de encargos financeiros e impostos na operação.", "as parcelas são atualizadas com a taxa do crédito rotativo e prazo definido.", "pode ser contratado sem cobrança de encargos e impostos, se pago o mínimo.", "a extensão para o próximo mês é automática e sem encargos pagando o mínimo."], answer: 0, explanation: "Gabarito: Refinanciamento gera parcelas fixas com juros menores que o rotativo, mas, por ser novo crédito, há cobrança de encargos e IOF." },
-            
-            { id: 21, diff: "Fácil", text: "Marcos usou o cheque especial e notou que a cobrança foi maior que apenas a taxa de juros informada. Camila esclareceu que:", options: ["os juros incidem sobre o saldo devedor, mas o IOF é recolhido integralmente no primeiro dia, sem diário.", "os juros são calculados por dia sobre os valores realmente usados e o IOF inclui um percentual fixo e outro diário pelo tempo de utilização.", "os juros são debitados no ciclo, enquanto o IOF é cobrado só na ativação do limite.", "o valor baseia-se no saldo negativo médio e o IOF não tem componente fixo."], answer: 1, explanation: "Gabarito: No cheque especial, além dos juros diários, o IOF é composto por uma alíquota fixa na liberação (0,38%) mais uma alíquota diária." },
-            { id: 22, diff: "Fácil", text: "Joana, aposentada, quer quitar dívidas. A opção mais adequada entre empréstimo pessoal, financiamento de veículo ou consignado é:", options: ["o empréstimo pessoal, pois garante uso livre dos recursos com taxa reduzida.", "o financiamento do veículo, pois direcionado ao bem tem juros inferiores ao consignado.", "o crédito consignado, pois o desconto em folha reduz risco para o banco, permitindo juros menores e prazos mais longos.", "o financiamento do veículo, pois garante prazos mais extensos que o pessoal."], answer: 2, explanation: "Gabarito: O crédito consignado possui garantia forte (desconto na fonte do benefício do INSS), o que reduz drasticamente o risco e barateia a taxa." },
-            { id: 23, diff: "Fácil", text: "O Banco A reduziu o limite do cheque especial e o Banco B disse que foi por causa do aumento do compulsório do Banco Central. Isso ocorre porque o recolhimento compulsório:", options: ["estimula os bancos a remunerarem depósitos à vista.", "promove ajustes operacionais, mas limites se mantém inalterados.", "visa resguardar saldos dos correntistas sem relação direta com liquidez.", "retira dinheiro de circulação, diminuindo o montante que os bancos têm para emprestar e, consequentemente, levando a uma política de crédito mais restritiva."], answer: 3, explanation: "Gabarito: O compulsório imobiliza dinheiro no Banco Central. Com menos dinheiro livre nos caixas dos bancos, a oferta de crédito diminui e fica mais restritiva." },
-            { id: 24, diff: "Médio", text: "Fernando observa um cliente irritado com atendimento presencial e outro usando o autoatendimento. Fernando esclarece que:", options: ["o banco disponibiliza canais presenciais, digitais e telefônicos, com segurança e informações claras, e o cliente pode escolher conforme sua necessidade.", "o atendimento presencial tende a ser priorizado para resolver situações de divergências complexas.", "o canal digital substitui o presencial obrigatoriamente para pequenas tarefas.", "a definição do canal segue regras internas e exige autorização do gerente."], answer: 0, explanation: "Gabarito: É direito do consumidor escolher o canal de atendimento que melhor atende sua demanda, seja presencial, digital ou telefônico, que devem ser eficientes." },
-            { id: 25, diff: "Médio", text: "Um investidor acredita que aplicar em ativos internacionais envolve muita burocracia e barreiras intransponíveis. O profissional explica que:", options: ["a abertura de conta depende de relacionamento direto com bancos estrangeiros.", "plataformas digitais permitem abrir contas no exterior, com integração cambial e fiscal, ampliando o acesso a diversos perfis.", "as remessas requerem autorização formal do Banco Central a cada operação.", "o acesso é restrito a fundos exclusivos de maior porte (alto patrimônio)."], answer: 1, explanation: "Gabarito: Inovações recentes (plataformas e corretoras digitais) democratizaram e desburocratizaram o acesso do varejo a investimentos diretos no exterior." },
-            { id: 26, diff: "Médio", text: "Na renegociação de um crédito consignado, a cliente questiona se o seguro prestamista antigo continua valendo. O profissional explica que:", options: ["a apólice original permanece válida até o término do novo empréstimo.", "o beneficiário passa a ser a instituição bancária independentemente de nova apólice.", "a apólice anterior deixa de vigorar, e exige-se nova cobertura prestamista vinculada ao credor (novo contrato).", "o seguro prestamista cobre genericamente as dívidas do cliente com a instituição."], answer: 2, explanation: "Gabarito: O refinanciamento liquida o contrato antigo e cria um novo. A apólice antiga cobria o risco do contrato anterior e é encerrada; uma nova apólice é necessária." },
-            { id: 27, diff: "Fácil", text: "Um casal quer independência financeira em 20 anos. Antes de escolher os produtos mais rentáveis, o profissional deve orientá-los a dimensionar a reserva-alvo considerando:", options: ["o histórico da carteira ao estimar o patrimônio.", "o patrimônio atual corrigido por inflação e os aportes constantes.", "o saldo atual e os valores nominais das despesas futuras.", "a taxa real e o horizonte de tempo para a aposentadoria desejada."], answer: 3, explanation: "Gabarito: Para planejar aposentadoria, o fundamental é usar a taxa de juros real (descontada a inflação) e o horizonte de tempo (20 anos) para trazer a fluxo presente as necessidades." },
-            { id: 28, diff: "Médio", text: "O casal tem renda mista (R$ 8.200 + bônus/bicos variáveis) e despesas mensais e sazonais. Para definir quanto poupar mensalmente, devem:", options: ["estimar a renda líquida recorrente, subtrair despesas fixas e a média provisionada das variáveis e sazonais, e usar a sobra como poupança mensal.", "adotar meta fixa baseada na renda total incluindo bicos incertos.", "calcular poupança pela diferença anual projetada assumindo compensações.", "basear poupança nos meses de alta renda para compensar déficits."], answer: 0, explanation: "Gabarito: Para estabilidade do fluxo de caixa, projeta-se as contas com base na renda certa/recorrente e provisiona-se as contas sazonais mensalmente. O que sobra é a poupança real." },
-            { id: 29, diff: "Médio", text: "Felipe quer financiar um carro preservando 3 meses de reserva (R$ 27 mil) e com parcela de no máximo 20% da renda (R$ 2.400). A melhor opção é:", options: ["escolher 60x (CET 22%), menor desembolso e longo prazo.", "optar pelo financiamento em 48x (CET 18%), com parcela R$ 2.295 e entrada R$ 20 mil, assegurando parcela abaixo de 20% e preservando os R$ 27 mil.", "adotar 36x com balloon de 40%.", "fechar 48x (CET 17%) com desconto e entrada R$ 25 mil, drenando a reserva."], answer: 1, explanation: "Gabarito: A opção em 48x a 18% (Entrada de R$ 20 mil) mantém a parcela em R$ 2.295 (< R$ 2.400) e consome R$ 20 mil dos R$ 47 mil de reserva, sobrando R$ 27 mil exatos (3 meses)." },
-            { id: 30, diff: "Fácil", text: "Ricardo fez aportes em previdência complementar e tem dúvida se deve usar a declaração Completa ou Simplificada de IR. Ele deve considerar:", options: ["a quantidade de fontes de renda e incidência de tributos nas aplicações.", "a forma de recebimento e descontos da classe profissional.", "a relação entre o total de despesas dedutíveis e o desconto padrão, avaliando qual opção resulta na menor base de cálculo do imposto.", "o volume de rendimentos garantindo maior restituição no processamento."], answer: 2, explanation: "Gabarito: Compara-se se as despesas dedutíveis ultrapassam os 20% de desconto do modelo simplificado. O foco é obter a menor base de cálculo para pagar menos imposto." },
-            
-            { id: 31, diff: "Fácil", text: "Para cobrir despesa médica imprevista, Cláudio avalia cheque especial, rotativo ou empréstimo pessoal. Fernando esclarece que ele deve:", options: ["priorizar o cheque especial pela liberação imediata.", "usar o rotativo do cartão no mês atual para manter flexibilidade.", "verificar empréstimo longo, mesmo com CET muito elevado.", "comparar cada opção e escolher a com menor custo efetivo total e prazo compatível com o fluxo."], answer: 3, explanation: "Gabarito: A escolha de crédito emergencial deve ser pautada pelo menor Custo Efetivo Total (CET) aliado a um prazo que encaixe no orçamento para evitar calotes." },
-            { id: 32, diff: "Médio", text: "Felipe é iniciante e desconfortável com oscilações. Marina explica que, para adequar os investimentos, ele precisa definir seu perfil (Suitability), que considera:", options: ["sua tolerância ao risco, seus objetivos financeiros e o horizonte de tempo.", "o histórico de aplicações e volume investido.", "seu comportamento com carteira atual reativa.", "seu nível de familiaridade com as notícias de mercado."], answer: 0, explanation: "Gabarito: O perfil de investidor (Suitability) é estabelecido combinando três pilares: Tolerância a riscos, Objetivos e Prazo (horizonte de tempo)." },
-            { id: 33, diff: "Fácil", text: "Roberto aplicou em renda fixa, mas quer migrar para fundo de ações após dica de um amigo. Elisa explicou que, antes de investir, Roberto deve:", options: ["buscar rendimento superior à média de mercado.", "estar alinhado ao perfil de risco, aos objetivos e a seu horizonte de investimento.", "manter liquidez imediata para resgate.", "privilegiar fundos com taxa zero a qualquer custo."], answer: 1, explanation: "Gabarito: Nenhuma recomendação de produto, muito menos de risco elevado como ações, deve ser executada sem verificar o alinhamento de Suitability do cliente." },
-            { id: 34, diff: "Difícil", text: "Profissional CPA é pressionado pela equipe a ignorar boas práticas para bater metas de captação mais rápido. Espera-se que o profissional:", options: ["ajuste temporariamente o processo para bater a meta sem alarde.", "reporte o conflito apenas se o cliente perder dinheiro.", "reafirme internamente os princípios de integridade, transparência e lealdade, sustentando que a orientação ao cliente deve prevalecer sobre metas.", "faça o cliente assinar um termo de ciência genérico e mantenha a captação."], answer: 2, explanation: "Gabarito: O Código de Ética exige que os interesses do cliente e a qualidade da orientação (Dever Fiduciário) prevaleçam sobre pressões por metas comerciais agressivas." },
-            { id: 35, diff: "Fácil", text: "Um parente do profissional CPA vai operar ações que o profissional também possui. O profissional não participou do atendimento. A conduta adequada é:", options: ["prosseguir operando e registrar depois.", "concluir a operação sem alardes se o compliance não perguntar.", "dar apenas dicas públicas e ignorar os controles internos.", "declarar o vínculo e informar aos controles internos as intenções de compra do seu parente."], answer: 3, explanation: "Gabarito: Trata-se de potencial conflito de interesse. A conduta correta e preventiva é abster-se da operação e reportar o vínculo ao compliance imediatamente." },
-            { id: 36, diff: "Fácil", text: "Falha interna no sistema atrasou o resgate de um fundo. Esse evento caracteriza-se como:", options: ["falhas de sistemas, erros humanos ou problemas de processo que causem perdas financeiras (Risco Operacional).", "atrasos de sistemas de telecomunicação de terceiros.", "irregularidades em controles internos sem perdas financeiras.", "erros de registro contábil de auditores externos."], answer: 0, explanation: "Gabarito: Falhas humanas, paradas de sistemas de TI internos ou problemas procedimentais são classificados estritamente como Risco Operacional." },
-            { id: 37, diff: "Difícil", text: "Investidor grande executa ordens agressivas no fim do pregão em ativos de baixa liquidez para inflar o fechamento de um índice. Essa prática caracteriza:", options: ["money pass (passagem de dinheiro dissimulada).", "manipulação de índice de referência, pela alteração deliberada de preços para influenciar o mercado.", "insider trading secundário.", "churning para girar patrimônio."], answer: 1, explanation: "Gabarito: A atuação forçada nos últimos minutos (leilão de fechamento) para distorcer intencionalmente cotações e índices configura manipulação de mercado/preços." },
-            { id: 38, diff: "Fácil", text: "Corretora paga bônus por giro. Profissional nota robôs gerando milhares de compras/vendas diárias sem alterar preço, só para gerar corretagem. O CPA deve:", options: ["ajustar a comunicação comercial e seguir faturando.", "culpar os clientes pelo uso indevido de robôs.", "comunicar formalmente o compliance sobre o padrão de operações suspeitas (churning) e sugerir suspensão.", "aguardar auditoria externa independente pegar a falha no ano seguinte."], answer: 2, explanation: "Gabarito: Giro excessivo gerado intencionalmente para faturar comissões em detrimento do cliente é fraude conhecida como Churning e deve ser barrada pelo Compliance." },
-            { id: 39, diff: "Médio", text: "Cliente teve crédito negado em banco tradicional. Fernanda explica que as finanças descentralizadas (DeFi) podem ser alternativa, pois oferecem:", options: ["garantia de subsídios do governo para empréstimos em criptomoedas.", "isenção de garantias ou colaterais nas operações cripto.", "crédito exclusivo a corporações e validadores de rede.", "acesso aberto a protocolos de crédito, permitindo empréstimos via contratos autoexecutáveis sem depender de grandes bancos."], answer: 3, explanation: "Gabarito: DeFi utiliza Smart Contracts em Blockchain para prover serviços financeiros P2P sem o crivo burocrático de um intermediário central (banco tradicional)." },
-            { id: 40, diff: "Médio", text: "O cliente ficou surpreso que o empréstimo DeFi não dependia de cartórios ou gerentes. Rafael esclarece que isso é seguro porque o blockchain:", options: ["permite o registro imutável e compartilhado das regras, viabilizando a execução automática de contratos (smart contracts).", "substitui instituições financeiras e não possui regras regulatórias.", "atua como carteira centralizada operada pelo Banco Central do país.", "garante proteção contra volatilidade das criptomoedas."], answer: 0, explanation: "Gabarito: A segurança do Blockchain deriva de sua rede descentralizada e imutável, onde códigos de contrato inteligente executam a lógica automaticamente de forma pública e inalterável." },
-            
-            { id: 41, diff: "Médio", text: "Cliente teme roubos bilionários ocorridos em grandes corretoras de cripto centralizadas (CEX). Carla diz que numa plataforma DEX (Decentralized Exchange):", options: ["concentra os ativos em cofres off-line super secretas.", "funciona sem custódia centralizada de ativos, reduzindo impactos de ataques, pois as operações ocorrem da carteira do usuário (P2P).", "depende de aprovação da CVM para dar segurança cibernética às trocas.", "mantém controle central dos ativos, mas com seguro cobrindo 100% de hackers."], answer: 1, explanation: "Gabarito: Nas DEXs, não há um 'banco centralizador' dos fundos dos clientes. O investidor negocia direto da sua carteira (non-custodial), mitigando risco de hack ao tesouro da corretora." },
-            { id: 42, diff: "Médio", text: "Um novo cliente (Pessoa Politicamente Exposta - PEP) deseja realizar um depósito de R$ 300.000,00 em espécie na agência bancária. Segundo as normas de PLD/FT, o profissional deve:", options: ["recusar o depósito, pois é vedado o recebimento de valores em espécie superiores a R$ 50.000,00 de clientes classificados como PEP.", "receber o recurso em sala privada e não comunicar ao COAF, já que a PEP tem foro privilegiado.", "acolher o depósito mediante identificação completa do portador, registrar a origem declarada e comunicar obrigatoriamente a operação em espécie ao COAF.", "orientar o cliente a fracionar o depósito em quantias de R$ 9.000,00 para evitar bloqueios regulatórios e não chamar atenção (smurfing)."], answer: 2, explanation: "Gabarito: Depósitos em espécie acima de R$ 50 mil possuem comunicação automática/obrigatória ao COAF. O banco não deve recusar sem motivo suspeito, mas deve registrar e reportar." },
-            { id: 43, diff: "Difícil", text: "Sobre a Resolução CVM 175 que trata de Fundos de Investimento, as subclasses de cotas dentro de uma mesma classe devem, obrigatoriamente, diferenciar-se entre si apenas em relação a:", options: ["política de investimento, indexadores de benchmark e concentração por emissor.", "regime tributário e moeda de liquidação das cotas no exterior.", "segregação patrimonial dos ativos e custodiantes terceirizados vinculados.", "taxas de administração, taxas de ingresso/saída, público-alvo e prazos de carência."], answer: 3, explanation: "Gabarito: Na CVM 175, as CLASSES de um mesmo fundo podem ter diferentes políticas de investimento e patrimônios segregados. As SUBCLASSES (dentro da mesma classe) compartilham os ativos, mas diferenciam-se em custos (taxas), público-alvo e condições de resgate/carência." },
-            { id: 44, diff: "Difícil", text: "Um fundo de investimento foi notificado pela Anbima por divulgar em seu prospecto que era 'Totalmente sustentável', mas mantinha em carteira debêntures de empresas ligadas a desmatamento ilegal sem plano de mitigação. Essa prática de comunicação enganosa é conhecida como:", options: ["Greenwashing (lavagem verde).", "Front Running.", "Suitability Inverso.", "Blue-washing ambiental."], answer: 0, explanation: "Gabarito: Greenwashing ocorre quando instituições tentam passar uma imagem falsa de responsabilidade socioambiental (ESG) para atrair investidores, enquanto suas práticas reais não sustentam tal discurso." },
-            { id: 45, diff: "Difícil", text: "Sempre que ocorre um acidente de avião noticiado nos telejornais, aumentam as vendas de seguros de viagem e de vida, embora o risco real de acidentes aéreos continue o mesmo (e seja menor que o de carro). Na economia comportamental, esse viés é explicado pela:", options: ["Heurística da Representatividade.", "Heurística da Disponibilidade.", "Ancoragem.", "Excesso de Confiança."], answer: 1, explanation: "Gabarito: A Heurística da Disponibilidade faz com que indivíduos julguem a probabilidade de um evento com base na facilidade com que exemplos recentes ou impactantes vêm à mente." },
-            { id: 46, diff: "Difícil", text: "Um cliente comprou ações da Empresa X a R$ 20,00. Hoje, as ações valem R$ 8,00, a empresa perdeu seus fundamentos e a recomendação técnica é de venda. No entanto, o cliente se recusa a vender, afirmando que só vende quando voltar a R$ 20,00 'para não sair no prejuízo'. Esse viés comportamental é a:", options: ["Contabilidade Mental.", "Efeito Manada.", "Aversão à Perda.", "Heurística da Representatividade."], answer: 2, explanation: "Gabarito: A Aversão à Perda (Loss Aversion) explica a relutância do investidor em realizar (assumir) o prejuízo, preferindo arriscar manter um ativo ruim apenas para evitar a dor psicológica de concretizar a perda." },
-            { id: 47, diff: "Difícil", text: "Um investidor mantém aplicações em um Fundo de Ações e em um Fundo Multimercado Longo Prazo, ambos constituídos na forma de condomínio aberto. Com relação à tributação do 'come-cotas' (antecipação de IR nos meses de maio e novembro), o investidor deve saber que ela:", options: ["incidirá em ambos os fundos, sendo 15% no fundo de ações e 20% no multimercado.", "incidirá apenas no Fundo de Ações, visto que fundos multimercados são isentos até o momento do resgate.", "foi extinta para fundos abertos pela legislação recente, ocorrendo tributação apenas no momento do resgate total.", "incidirá somente sobre o Fundo Multimercado Longo Prazo, à alíquota de 15%. Fundos de Ações são isentos de come-cotas."], answer: 3, explanation: "Gabarito: Fundos de Ações (composição mínima exigida em renda variável) NÃO possuem a antecipação semestral de IR (come-cotas). O come-cotas incide em Fundos de Curto e Longo Prazo (Renda Fixa, Cambial e Multimercado)." },
-            { id: 48, diff: "Difícil", text: "O gestor de um fundo de renda fixa informa em seu relatório que o fundo possui um VaR (Value at Risk) diário de R$ 50.000,00 com 95% de nível de confiança. Isso significa que, em condições normais de mercado:", options: ["há uma probabilidade de apenas 5% de o fundo perder MAIS de R$ 50.000,00 em um único dia.", "o fundo garante um rendimento diário mínimo de R$ 50.000,00 em 95% dos dias do ano.", "há 95% de chance de o fundo sofrer prejuízos superiores a R$ 50.000,00 todos os dias.", "o limite máximo de perda do fundo, em qualquer cenário de estresse econômico, está travado em exatos R$ 50.000,00."], answer: 0, explanation: "Gabarito: O VaR mensura a perda máxima esperada em condições normais. Com 95% de confiança, significa que em 95% das vezes a perda será MENOR ou igual a 50 mil. Logo, sobra 5% de probabilidade de a perda superar os 50 mil reais." },
-            { id: 49, diff: "Difícil", text: "Julio possui um VGBL no qual declarou o regime de tributação regressiva (definitivo) no ato da contratação. Hoje, passados 5 anos, ele deseja fazer a portabilidade de todos os recursos para um PGBL com tabela progressiva na mesma seguradora. Pela legislação brasileira de Previdência Complementar, essa operação:", options: ["é permitida, mas ensejará o pagamento imediato de imposto de renda sobre os rendimentos auferidos.", "não é permitida, pois é vedada a portabilidade entre planos de naturezas diferentes (de VGBL para PGBL) e a troca do regime regressivo para o progressivo.", "é permitida livremente sem tributação, desde que mantida a instituição administradora.", "é permitida apenas se o saldo acumulado for transferido para a cobertura de risco de morte."], answer: 1, explanation: "Gabarito: A legislação proíbe portabilidade de VGBL para PGBL (e vice-versa). Além disso, não é possível migrar do Regime Regressivo para o Progressivo (a lei nova até permitiu a escolha do regime no resgate/benefício, mas a mudança de natureza do plano segue vedada)." },
-            { id: 50, diff: "Difícil", text: "Segundo os Códigos Anbima, os fundos de investimento devem obrigatoriamente registrar os ativos de sua carteira pelo valor que eles poderiam ser negociados no mercado no dia do fechamento da cota. Esse processo evita transferência de riqueza entre cotistas que aplicam ou resgatam no mesmo dia, e é chamado de:", options: ["Duration Modificada.", "Marcação na Curva de Juros (Valor de Aquisição).", "Marcação a Mercado (MaM).", "Hedge Contábil."], answer: 2, explanation: "Gabarito: Marcação a Mercado é a atualização diária do preço dos ativos de um fundo com base no valor justo pelo qual seriam negociados naquele dia. Isso garante equidade no cálculo do valor da cota para quem entra e quem sai do fundo." }
+            { 
+                id: 1, diff: "Médio", 
+                text: "Contexto: Jorge, estagiário em uma cooperativa de crédito, consulta Paulo, profissional CPA, para entender a diferença entre uma cooperativa de crédito e um banco cooperativo. Paulo explica que os papéis de ambas são bastante distintos, ainda que as cooperativas ofereçam serviços como cartões, TED/Pix e fundos de investimento. Ele salienta que a relação conceitual entre quem atende o cooperado na ponta e quem habilita a operação em escala no sistema cooperativo distingue esses dois tipos de instituição.\n\nEnunciado: Para deixar mais explícita esta diferenciação, Paulo poderia explicar que a cooperativa:", 
+                options: [
+                    "atua como representante do banco cooperativo e este realiza a captação e a concessão de crédito.", 
+                    "concentra serviços financeiros para pessoas jurídicas e o banco cooperativo atua com pessoas físicas.", 
+                    "atende o cooperado (capta/empresta) e o banco cooperativo provê infraestrutura, liquidez e acesso a mercados.", 
+                    "realiza operações de crédito e o banco cooperativo atua como intermediário direto no mercado financeiro."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: A cooperativa singular é quem interage com o cooperado na ponta, concedendo crédito, captando recursos e ofertando serviços diretamente. Já o banco cooperativo funciona como a \"espinha dorsal\" do sistema, garantindo a infraestrutura de liquidez, a compensação de operações, o acesso a mercados financeiros." 
+            },
+            { 
+                id: 2, diff: "Médio", 
+                text: "Contexto: Durante o atendimento financeiro, Tereza, servidora pública, comenta que está avaliando participar de um plano de previdência complementar com benefício fiscal. Ela ouviu falar de uma modalidade oferecida por instituições abertas, o PGBL e pede para a profissional CPA Renata explicar como funciona esse tipo de plano no sistema de previdência complementar.\n\nEnunciado: Renata explica à cliente que esta modalidade é mais vantajosa quando a pessoa:", 
+                options: [
+                    "deseja que a tributação ocorra sobre os rendimentos no resgate, buscando aproveitar o aporte sem que a base seja o valor total acumulado.", 
+                    "não possui renda tributável no ano e pretende usar o plano para reduzir imposto futuro, independentemente de contribuir para o regime oficial.", 
+                    "atua como autônoma sem contribuição ao regime oficial e pretende usar o plano para organizar a poupança previdenciária, visando benefício fiscal.",
+                    "tem renda tributável e contribui ao regime oficial (INSS/RPPS), usando o plano para diferir até 12% da renda, via declaração completa de IR, e tributar o total no resgate/benefício."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: O PGBL permite diferir IR ao abater até 12% da renda bruta tributável do ano, desde que o cliente contribua para o INSS/RPPS. A tributação ocorre sobre o total resgatado/benefício no futuro. Para quem tem renda tributável e contribui ao regime oficial, o ganho de fluxo de caixa é efetivo." 
+            },
+            { 
+                id: 3, diff: "Médio", 
+                text: "Contexto: Durante uma palestra de educação financeira para ingressantes no curso de graduação em Ciências Econômicas, Marina, profissional CPA convidada pela instituição, foi questionada sobre notícias envolvendo decisões do Banco Central e mudanças nas condições de crédito. Alguns alunos demonstraram dúvida sobre como essas ações afetam o funcionamento do sistema financeiro no curto prazo, especialmente em momentos de maior incerteza econômica. Eles queriam entender, de forma simples, qual é o objetivo dessas medidas adotadas pelo Banco Central no mercado monetário.\n\nEnunciado: Diante dessa dúvida, Marina explicou que essas medidas têm como objetivo:", 
+                options: [
+                    "ajustar a quantidade de moeda no sistema, modulando a liquidez e orientando as taxas de juros de curto prazo.",
+                    "fixar os juros de longo prazo e os preços do crédito, adotando intervenção direta nos contratos privados.", 
+                    "assegurar a expansão contínua do crédito por metas de volume, a fim de garantir crescimento econômico.", 
+                    "eliminar a volatilidade diária dos mercados financeiros por operações que neutralizam choques, sem alterar os juros."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: A política monetária atua sobre a liquidez e os juros de curto prazo por meio de instrumentos como operações de mercado aberto, compulsórios e redesconto. O objetivo é adequar as condições financeiras à estabilização dos preços e ao funcionamento regular do mercado." 
+            },
+            { 
+                id: 4, diff: "Médio", 
+                text: "Contexto: Durante a divulgação de novas projeções fiscais, analistas destacaram o aumento das despesas primárias e reacenderam o debate sobre a sustentabilidade das contas públicas. Parte do mercado passou a monitorar os possíveis impactos no endividamento, na confiança dos agentes econômicos e no comportamento das taxas de juros. Nesse ambiente de maior sensibilidade, o profissional CPA acompanha as análises de mercado e busca compreender como as políticas fiscais influenciam as expectativas de inflação e o comportamento das taxas de juros.\n\nEnunciado: Nesse cenário, o profissional CPA deve entender que a relação central entre as variáveis apresentadas é que:", 
+                options: [
+                    "o aumento das despesas públicas estimula permanentemente a atividade econômica, independentemente da origem do financiamento.", 
+                    "o desequilíbrio fiscal eleva o risco-país, deteriora as expectativas de inflação e pressiona as taxas de juros, que tendem a crescer.",
+                    "o déficit fiscal é compensado automaticamente pela política monetária, mantendo neutros os efeitos sobre inflação e juros.", 
+                    "a expansão do gasto público gera, por si só, equilíbrio entre arrecadação e consumo agregado no longo prazo."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O desequilíbrio fiscal eleva o risco-país e pressiona os juros e a inflação para cima, reduzindo o espaço para investimentos produtivos e desacelerando o crescimento de forma sustentável." 
+            },
+            { 
+                id: 5, diff: "Médio", 
+                text: "Contexto: Marcelo, profissional certificado CPA, foi procurado por um cliente com perfil conservador a moderado que mantém parte relevante de sua carteira em Tesouro Direto, fundos de renda fixa e fundos multimercado. Após notícias de que o governo decidiu não promover ajuste fiscal no curto prazo, em função de frustração de receitas e aumento de despesas, o cliente perguntou ao profissional quais as consequências esperadas desse novo cenário fiscal.\n\nEnunciado: Diante desse contexto, Marcelo deve explicar que essa decisão do governo tende a:", 
+                options: [
+                    "estimular o crescimento econômico sem impacto relevante sobre inflação e juros, favorecendo o desempenho de títulos públicos, de crédito privado e de fundos multimercado.", 
+                    "reduzir a necessidade de financiamento do governo, aumentar a confiança dos investidores pelo aumento dos juros e contribuir para a valorização dos títulos públicos já emitidos.", 
+                    "elevar a percepção de risco, pressionar inflação e juros e provocar desvalorização dos títulos de renda fixa já emitidos, afetando negativamente o desempenho de parte da carteira.",
+                    "produzir efeitos restritos às contas públicas, sem influência relevante sobre taxas de juros ou sobre os preços de ativos financeiros, com impacto baixo sobre decisões de investimento."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: Quando há percepção de descontrole fiscal, investidores exigem prêmios de risco maiores, o que pressiona as taxas de juros. Com juros mais altos, o preço dos títulos já emitidos tende a cair, afetando negativamente fundos de renda fixa e parte dos multimercados, além de aumentar a inflação esperada e o custo do crédito." 
+            },
+            { 
+                id: 6, diff: "Médio", 
+                text: "Contexto: Durante uma ação de educação financeira promovida pela instituição, Luís, profissional CPA, foi convidado a esclarecer conceitos gerais de economia aos clientes interessados em investimentos. Ao comentar notícias recentes sobre endividamento público, alguns participantes perguntaram como esse tema costuma se relacionar com o comportamento dos juros e da inflação no país.\n\nEnunciado: Diante desse questionamento, Luís explicou de forma objetiva que:", 
+                options: [
+                    "o controle do endividamento público tende a preservar a confiança dos investidores, embora sem efeito direto sobre as condições de crédito privado.", 
+                    "o equilíbrio fiscal reduz o risco e as pressões sobre juros e inflação, criando um ambiente mais favorável ao investimento produtivo.",
+                    "o aumento das despesas públicas pode estimular a economia no curto prazo, ainda que eleve os riscos fiscais no médio e longo prazo.", 
+                    "a ampliação do gasto governamental reduz momentaneamente o desemprego, mas compromete a estabilidade macroeconômica futura."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O equilíbrio fiscal reduz o risco-país, estabiliza juros e inflação e amplia a confiança do mercado, favorecendo investimentos produtivos e crescimento sustentável. É a essência da responsabilidade fiscal." 
+            },
+            { 
+                id: 7, diff: "Médio", 
+                text: "Contexto: Carolina, profissional certificada CPA, foi convidada para uma reunião de orientação a jovens empreendedores que se preocupam com o ambiente macroeconômico. Um dos presentes afirmou que o governo pode sempre aumentar despesas para estimular a economia, sem maiores limites. Outro lembrou que, quando isso acontece de forma recorrente, a dívida pública cresce e a confiança de investidores pode diminuir. Carolina explicou que, no Brasil, existem regras para conter riscos fiscais. Mencionou que a Lei de Responsabilidade Fiscal (LRF) estabelece princípios de gestão responsável, como limites para endividamento e exigência de equilíbrio nas contas. Em seguida, destacou que o novo arcabouço fiscal estabelece regras para o crescimento das despesas públicas, vinculando-o parcialmente à evolução das receitas e impondo limites para garantir a sustentabilidade da dívida. O grupo, então, pediu que Carolina resumisse de forma prática o efeito mais provável dessas medidas sobre as contas públicas.\n\nEnunciado: No resumo de Carolina o efeito é:", 
+                options: [
+                    "manter disciplina fiscal ao limitar o avanço real das despesas, alinhando gastos à inflação.", 
+                    "garantir previsibilidade ao exigir limites de endividamento e maior transparência na execução orçamentária.", 
+                    "sustentar confiança ao reforçar regras de alocação de recursos e parâmetros de crescimento compatíveis com arrecadação.", 
+                    "equilibrar contas públicas ao unir contenção de despesas, limites de dívida e controle da expansão dos gastos primários."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: Resume a lógica combinada: LRF (limites de dívida e responsabilidade) + teto de gastos (contenção da despesa primária), compondo o arcabouço mais abrangente de sustentabilidade fiscal." 
+            },
+            { 
+                id: 8, diff: "Médio", 
+                text: "Contexto: Juliana é uma profissional certificada Anbima e costuma explicar a seus clientes como as decisões do Banco Central podem impactar as taxas de juros e o mercado financeiro. Em uma reunião, um cliente pessoa jurídica comenta que ouviu no noticiário que o Banco Central realizou uma operação compromissada. O motivo da atuação da autoridade monetária foi reduzir a quantidade de moeda em circulação, com o objetivo de conter pressões sobre a taxa de juros de curto prazo. Juliana explica aos clientes que essas intervenções do Banco Central fazem parte das operações de mercado aberto, um dos instrumentos de política monetária utilizado para regular a liquidez do sistema financeiro.\n\nEnunciado: No caso citado, Juliana informou ao cliente que a operação realizada pelo Banco Central seria:", 
+                options: [
+                    "uma venda de títulos públicos com compromisso de recompra, em data e preço pré-pactuados.",
+                    "uma compra de títulos públicos com compromisso de revenda, em data e preço pré-pactuados.", 
+                    "um empréstimo de títulos públicos com compromisso de pagamento de juros, em data e preço pré-pactuados.", 
+                    "uma venda de títulos públicos com opção compra, em data e preço pré- pactuados."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: É a compromissada de venda: o agente (ex.: BC ou banco) vende títulos hoje e se compromete a recomprar depois. Retira reservas do sistema (enxuga liquidez). Remuneração vem da diferença de preços; há transferência de propriedade, haircut e ajuste diário." 
+            },
+            { 
+                id: 9, diff: "Médio", 
+                text: "Contexto: Durante um atendimento, o profissional CPA Roberto percebeu que seu cliente José estava preocupado. José contou que tinha acabado de ler uma reportagem sobre os prejuízos sofridos por investidores de um fundo gerido por uma instituição financeira que comprou em liquidação extrajudicial. José pediu para Roberto explicar qual seria a melhor forma de avaliar a transparência das informações dos fundos de investimento e também gostaria de saber como analisar a conduta das instituições que distribuem esses fundos. Roberto disse que um bom começo é procurar saber se a instituição é filiada à Anbima e se adota o Código de Regulação e Melhores Práticas da Anbima, que é obrigatório para instituições filiadas ou que aderirem formalmente.\n\nEnunciado: Roberto explicou que, além da regulação oficial, há normas de autorregulação que impactam diretamente a confiança e a clareza no relacionamento com investidores. E que um exemplo de norma presente no Código é:", 
+                options: [
+                    "reforçar principalmente os padrões fiduciários e a ética dos gestores, deixando a padronização de informações e a publicidade a critério de cada instituição.", 
+                    "orientar governança e compliance para elevar a integridade, sem abranger concorrência leal, padronização de procedimentos e qualidade das informações ao investidor.", 
+                    "definir parâmetros de conduta que asseguram concorrência leal, padronização de procedimentos e maior qualidade das informações prestadas sobre fundos de investimento.",
+                    "padronizar comunicação e divulgação para dar clareza ao investidor, sem cobrir conduta de mercado, concorrência leal e procedimentos operacionais previstos no Código."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O Código da Anbima visa complementar a regulação oficial, estabelecendo padrões de conduta e transparência que promovem concorrência leal, padronização de processos e melhor qualidade das informações, fortalecendo a confiança de pessoas físicas e jurídicas no mercado." 
+            },
+            { 
+                id: 10, diff: "Médio", 
+                text: "Contexto: Durante uma reunião com clientes, surgem dúvidas sobre os riscos recentes no mercado internacional e a segurança das instituições financeiras no Brasil. Alguns participantes manifestam preocupação com a possibilidade de instabilidade no crédito e no funcionamento dos bancos.\n\nEnunciado: Nesse atendimento, o profissional certificado Anbima deve explicar aos participantes da reunião que o Bacen:", 
+                options: [
+                    "conduz políticas de crédito setoriais, definindo volumes e condições de financiamento de acordo com objetivos do governo.", 
+                    "adota normas prudenciais, regula a liquidez, promove medidas de estabilidade sistêmica e sustenta a confiança no sistema.",
+                    "padroniza a remuneração de ativos, estabelecendo retornos equivalentes para títulos negociados no mercado secundário.", 
+                    "centraliza a intermediação financeira, assumindo a concessão de crédito e investimentos de longo prazo no lugar dos bancos comerciais."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: No atendimento ao cliente, o profissional deve explicar que o BACEN atua com normas prudenciais, regulação da liquidez e medidas de estabilidade sistêmica, reforçando que sua função é preservar a confiança e a solidez do Sistema Financeiro Nacional em momentos de crise." 
+            },
+            { 
+                id: 11, diff: "Médio", 
+                text: "Contexto: Uma empresa do setor de tecnologia, com forte apelo de mercado, está realizando sua Oferta Pública Inicial (IPO). A demanda pelas ações durante o período de reserva superou em várias vezes a quantidade de papéis ofertada, resultando em um rateio significativo para os investidores que participaram. A oferta também prevê um lote suplementar como mecanismo de estabilização.\n\nEnunciado: Considerando a dinâmica de formação de preço no bookbuilding, apresentado neste contexto, conclui-se que:", 
+                options: [
+                    "o preço da ação se manterá estável após a listagem, pois o lote suplementar é usado ativamente para impedir a volatilidade e fixar a cotação no valor do IPO.", 
+                    "a liquidez atinge seu pico durante o IPO, devido ao grande volume ofertado pela empresa, tornando-se mais restrita no secundário, em que depende dos vendedores iniciais.", 
+                    "o rateio na oferta primária é pouco relevante para o preço no secundário, que se altera com novas ofertas da empresa, e não pela negociação entre os investidores.", 
+                    "a demanda elevada no IPO tende a pressionar o preço na abertura do mercado secundário, em que a liquidez real se estabelece com a negociação entre investidores."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: A alta demanda não atendida no IPO (rateio) tende a criar uma pressão compradora no início das negociações, influenciando o preço. A liquidez se consolida no secundário." 
+            },
+            { 
+                id: 12, diff: "Médio", 
+                text: "Contexto: Joel, profissional CPA, foi procurado por investidores interessados em participar de um fundo de investimento inovador. Durante o atendimento, ele consultou o regulamento do fundo e verificou a cláusula que estabelecia: \"as estratégias de investimento podem resultar em perdas superiores ao capital aplicado e na consequente obrigação do cotista de aportar recursos adicionais para cobrir o prejuízo\". Diante da dúvida dos investidores sobre a documentação necessária para formalizar a aplicação, Joel explicou que eles precisariam assinar um termo.\n\nEnunciado: O termo a que Joel se referiu é o:", 
+                options: [
+                    "termo de adesão e ciência de risco, que formaliza o conhecimento dos cotistas sobre a possibilidade de perdas superiores ao capital aplicado.",
+                    "termo de ciência e assunção de responsabilidade patrimonial ilimitada, que substitui a necessidade de adesão quando há alavancagem.", 
+                    "termo de ciência e confirmação de interesse, registrado em meio físico ou digital, como único requisito de ingresso no fundo de investimento.", 
+                    "termo de autorização para movimentação de recursos, que assegura a formalização de conhecimento de perdas relativas a juros e depreciação."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: Por meio de um termo de adesão e ciência de risco, ao ingressar no fundo, todo cotista deve atestar que teve acesso à documentação requerida, que conhece os fatores de risco que podem resultar em perdas superiores ao capital aplicado. Conforme artigo 29 inc. 2º, letra e da Res. CVM 175/22. Como o regulamento do fundo explicitamente não limita a responsabilidade do cotista ao valor por ele subscrito, o cotista não precisa assinar, conjuntamente, o Termo de ciência e assunção de responsabilidade ilimitada." 
+            },
+            { 
+                id: 13, diff: "Médio", 
+                text: "Contexto: Tânia é acionista da empresa de capital aberto Nova Era S.A. e recebeu um comunicado de que a companhia realizará uma operação de ajuste no número de ações em circulação. O documento informava que cada ação existente passará a representar dez novas ações. Desejando entender o impacto dessa alteração sobre sua participação e sobre o valor do capital da empresa, Tânia procurou Luísa, profissional de atendimento de sua instituição financeira.\n\nEnunciado: A informação correta a ser fornecida por Luísa é de que:", 
+                options: [
+                    "não haverá alteração do número de ações no capital social da empresa. A participação de Tânia e o valor do capital social da Nova Era ficarão inalterados.", 
+                    "não haverá aumento do número de ações no capital social da empresa. A participação de Tânia na Nova Era e o valor do capital social da empresa serão reduzidos.", 
+                    "haverá aumento do número de ações no capital social da empresa. A participação de Tânia e o valor do capital social da Nova Era ficarão inalterados.",
+                    "haverá aumento do número de ações no capital social da empresa. a participação de Tânia será reduzida e o valor do capital social da Nova Era será aumentado."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: Um desdobramento de ações consiste no aumento do número das ações em circulação (outstanding) que compõem o capital social da empresa. No entanto, o valor do capital social não é alterado, uma vez que não haverá entrada ou saída de recursos no capital da empresa. Haverá apenas o aumento do número de ações em circulação. O número de ações de Tânia será aumentado na proporção de sua participação, de modo que sua participação ficará inalterada." 
+            },
+            { 
+                id: 14, diff: "Fácil", 
+                text: "Contexto: Pedro ouviu de amigos sobre uma oportunidade de investimento em flats de sua cidade, oferecida por uma empresa responsável pelo empreendimento. Interessado, visitou o stand de vendas e foi informado de que, para participar, o investidor deveria aderir a um condomínio denominado \"Fundo de Investimento Plaza S/C\", com integralização de recursos via contrato de mútuo. Antes de decidir, Pedro quis confirmar se a operação seguia as normas do mercado e oferecia a devida segurança. Para isso, entrou em contato com Denise, profissional de atendimento de sua instituição financeira, em busca de orientação sobre onde verificar a regularidade do investimento.\n\nEnunciado: Diante da dúvida de Pedro, a orientação correta de Denise é que ele deve recorrer", 
+                options: [
+                    "ao Banco Central.", 
+                    "à Comissão de Valores Mobiliários (CVM).",
+                    "à Bolsa B3.", 
+                    "à Junta Comercial do estado."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O fundo de investimento é uma comunhão de recursos, constituído sob a forma de condomínio de natureza especial, destinado à aplicação em ativos financeiros, bens e direitos, de acordo com a regra específica aplicável à categoria do fundo. Como a oferta utiliza a expressão \"Fundo de Investimento\", o Art. 8º da Resolução No. 175 estabelece que o funcionamento do fundo depende do seu prévio registro na CVM. Ademais, como o investimento está sendo feito ao público, trata-se de um valor mobiliário, o qual também requer registro da oferta junto à CVM." 
+            },
+            { 
+                id: 15, diff: "Médio", 
+                text: "Contexto: Teresa investiu em um fundo de crédito privado, mas ficou decepcionada. A rentabilidade do fundo foi inferior ao benchmark, além das taxas de administração incorridas no período. Procurando atendimento, entrou em contato com Raquel, profissional da instituição, para solicitar o resgate de suas cotas. Durante a conversa, Teresa comentou que cogitava investir apenas em títulos de crédito individuais, em vez de fundos. Raquel explicou que, entre as vantagens dos fundos, está a diversificação do risco de crédito.\n\nEnunciado: Neste caso, Raquel poderia explicar este benefício como uma forma de:", 
+                options: [
+                    "assegurar retornos superiores ao fundo, quando comparado a ativos individuais.", 
+                    "reduzir custos de administração e gerenciamento do fundo.", 
+                    "permitir liquidez imediata semelhante à dos fundos de renda fixa de alta liquidez.", 
+                    "reduzir o risco de perdas de crédito decorrentes do não pagamento de emissores individuais."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: A ideia chave da diversificação é reduzir o risco da carteira. Ela não elimina o risco, mas permite reduzi-lo ao diluir a exposição entre diferentes ativos e emissores. Dessa forma, diminui o impacto de eventos negativos em ativos individuais sobre o resultado total da carteira." 
+            },
+            { 
+                id: 16, diff: "Difícil", 
+                text: "Contexto: Durante um treinamento interno, Helena, analista de operações de uma corretora, perguntou a Paulo, profissional CPA, como a regulação recente da CVM garante a proteção dos cotistas em situações de risco financeiro. Ela citou o caso de um cliente preocupado com a possibilidade de prejuízos em uma classe de fundo afetarem outra classe ou mesmo outros fundos do mesmo administrador.\n\nEnunciado: Paulo explica que esse caso está relacionado à:", 
+                options: [
+                    "segregação patrimonial.",
+                    "unificação contábil dos fundos.", 
+                    "compensação de resultados.", 
+                    "integração operacional entre classes."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: A Resolução CVM nº 175 garante a segregação patrimonial, princípio que protege os cotistas, separando juridicamente os patrimônios de cada fundo e classes, impedindo que perdas ou obrigações de um/uma afetem os demais." 
+            },
+            { 
+                id: 17, diff: "Médio", 
+                text: "Contexto: Durante um atendimento, César, engenheiro de uma empresa privada, comentou com Rogério, profissional CPA, que deseja começar a investir em previdência complementar. Ele ouviu colegas falarem sobre o PGBL, mas não entendeu quais perfis se beneficiam dessa modalidade.\n\nEnunciado: Rogério esclarece que esse plano:", 
+                options: [
+                    "é isento de imposto no resgate, pois a tributação ocorre durante o período de acumulação dos recursos.", 
+                    "é voltado para quem declara o IR no modelo completo e busca deduzir contribuições até o limite legal anual.",
+                    "é indicado para quem utiliza o modelo simplificado de IR, já que não há necessidade de deduzir contribuições.", 
+                    "é destinado a empregados de empresas patrocinadoras que também realizam contribuições ao plano."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O PGBL é voltado a contribuintes que declaram IR no modelo completo, permitindo deduzir até 12% da renda bruta anual. O imposto incide sobre o total resgatado, sendo ideal para quem busca benefício fiscal no longo prazo." 
+            },
+            { 
+                id: 18, diff: "Médio", 
+                text: "Contexto: Durante um atendimento, Beatriz, dentista de 38 anos, procurou João, profissional CPA, para esclarecer dúvidas sobre seu plano de previdência VGBL (Vida Gerador de Benefício Livre). Ela explicou que seu pró-labore mensal é de 1 salário mínimo e gostaria de entender se esse plano seria adequado a ela.\n\nEnunciado: João explica que o plano de Beatriz é adequado pois:", 
+                options: [
+                    "é voltado para quem busca deduzir até 12% da renda bruta anual e reduzir a base de cálculo do imposto.", 
+                    "é voltado para quem participa de planos corporativos que oferecem previdência complementar patrocinada.", 
+                    "é voltado para quem declara o IR no modelo simplificado e tributa apenas os rendimentos no resgate.",
+                    "é voltado para quem declara IR pelo modelo simplificado e tributa o valor total resgatado, abrangendo capital e rendimentos acumulados."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O VGBL é destinado a quem utiliza o modelo simplificado de IR ou já atingiu o limite de dedução do PGBL. O imposto incide somente sobre os rendimentos, o que torna o plano indicado para autônomos e profissionais liberais." 
+            },
+            { 
+                id: 19, diff: "Fácil", 
+                text: "Contexto: Mauro, prestes a se aposentar, procura Daniel, profissional CPA, e informa que acumulou recursos em um plano de previdência e pretende iniciar o recebimento do benefício em breve. Ele deseja uma renda mensal por tempo determinado, já que pretende utilizar parte do valor para complementar o orçamento e deixar o restante como herança aos filhos.\n\nEnunciado: Daniel esclareceu que existe uma modalidade em que o pagamento é:", 
+                options: [
+                    "vitalício condicionado à expectativa de vida do participante, sem reversão ao beneficiário após o falecimento do titular.", 
+                    "variável, vinculado ao rendimento da reserva, com pagamentos mensais e encerrado automaticamente em caso de morte do titular.", 
+                    "garantido até o falecimento do titular, com saldo residual convertido em indenização única a ser pago ao(s) beneficiário(s).",
+                    "fixado por prazo determinado, com continuidade ao(s) beneficiário(s) até o fim do período em caso de falecimento do titular."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: A Renda Mensal por Prazo Certo estabelece um período previamente definido de pagamento. Caso o participante falte antes do término, o beneficiário continua recebendo a renda até o fim do prazo estipulado em contrato, conforme regulamentação da SUSEP." 
+            },
+            { 
+                id: 20, diff: "Fácil", 
+                text: "Contexto: Marcos tem uma fatura de cartão de crédito de R$ 10.200,00 com vencimento próximo, mas não dispõe de recursos para quitá-la integralmente. Após ouvir de um familiar que poderia avaliar alternativas de refinanciamento, procurou sua instituição financeira e ao chegar foi atendido por Camila, profissional CPA. Ele explicou a ela a situação e perguntou como funciona essa modalidade de refinanciamento oferecida pelo banco. Camila esclarece que essa operação de refinanciamento da fatura ocorre com base em um contrato de parcelamento do saldo da dívida do cartão.\n\nEnunciado: Camila acrescentou em sua explicação que:", 
+                options: [
+                    "as parcelas do cartão são fixas e o prazo é definido, com incidência de encargos financeiros e impostos na operação.",
+                    "as parcelas são atualizadas com a mesma taxa de juros do crédito rotativo e com prazo definido, com incidência de impostos.", 
+                    "o parcelamento da fatura pode ser contratado sem cobrança de encargos financeiros e impostos, se o valor mínimo da fatura for pago.", 
+                    "a extensão do vencimento do saldo da fatura para o próximo mês é automática e sem encargos, se o valor mínimo da fatura for pago."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O refinanciamento consiste em renegociar as dívidas já existentes, substituindo o contrato atual por um novo que oferece condições de pagamento mais favoráveis, como juros menores e prazos de pagamento mais longos, para facilitar a sua organização financeira. A medida permite parcelar o saldo total da dívida do cartão em um número maior de parcelas fixas e com taxas de juros inferiores às do rotativo do cartão, evitando que a dívida cresça excessivamente. Há incidência de impostos, pois se trata de um novo financiamento, bem como de encargos financeiros. Estes, porém, são inferiores ao crédito rotativo." 
+            },
+            { 
+                id: 21, diff: "Fácil", 
+                text: "Contexto: Em um atendimento presencial, Marcos comentou com Camila, profissional CPA, que precisou usar o cheque especial por 5 dias, e que utilizou o limite, no valor de R$ 800, para cobrir despesas até o recebimento do salário. Ao consultar o extrato, notou que o valor cobrado era maior do que imaginava. Ele acreditava que pagaria apenas os juros sobre os R$ 800 pelo período utilizado, mas percebeu um valor adicional. Pediu, então, que Camila explicasse por que o valor cobrado não correspondia aos juros publicados pelo banco.\n\nEnunciado: Camila esclareceu que:", 
+                options: [
+                    "os juros incidem sobre o saldo devedor diário, mas o IOF é recolhido integralmente no primeiro dia de uso, sem componente adicional nos dias seguintes.", 
+                    "os juros são calculados por dia sobre os valores realmente usados e o IOF inclui um percentual fixo e outro diário, cobrado pelo tempo de utilização do limite.",
+                    "os juros são apropriados dia a dia e debitados no ciclo do extrato, enquanto o IOF é cobrado na ativação do limite, sem incidência diária adicional.", 
+                    "o valor tem como base o saldo negativo médio do período e o IOF sobre a variação diária do uso, sem componente fixo na contratação."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O cheque especial aplica juros diários sobre o valor utilizado e não sobre o limite. Além disso, o IOF é composto por uma alíquota fixa na liberação do crédito e outra diária, acumulada enquanto o saldo permanece negativo. Isso explica por que Marcos pagou mais do que apenas os juros divulgados." 
+            },
+            { 
+                id: 22, diff: "Fácil", 
+                text: "Contexto: Carlos, profissional CPA, está auxiliando Joana, aposentada que deseja quitar dívidas atrasadas e reorganizar seu orçamento. Ela identificou disponíveis no seu internet banking: um empréstimo pessoal tradicional de prazo curto; um financiamento de veículo; e um crédito consignado, com parcelas descontadas diretamente do benefício do INSS. Joana perguntou qual dessas propostas oferecia condições mais adequadas em termos de juros e prazo, considerando seu perfil de aposentada.\n\nEnunciado: Carlos respondeu que, para o perfil da cliente, a proposta mais adequada e que atende às condições que ela ponderou seria:", 
+                options: [
+                    "o empréstimo pessoal, pois garante uso livre dos recursos, com taxa reduzida em razão da ausência de garantias.", 
+                    "o financiamento do veículo, pois é direcionado a um bem específico e, por isso, tende a apresentar juros inferiores aos do consignado.", 
+                    "o crédito consignado, pois o desconto em folha reduz risco para o banco, permitindo juros menores e prazos mais longos.",
+                    "o financiamento do veículo, pois garante a posse imediata do bem e oferece prazos de pagamento mais extensos que o empréstimo pessoal."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O crédito consignado, com desconto em folha, reduz significativamente o risco de inadimplência para o banco. Isso permite a oferta de juros menores e prazos mais longos, especialmente vantajosos para aposentados e pensionistas." 
+            },
+            { 
+                id: 23, diff: "Fácil", 
+                text: "Contexto: No atendimento de rotina, Helena mostra a Rafael, profissional certificado Anbima, duas notificações recebidas: (i) o Banco A reduziu o limite do cheque especial; (ii) o Banco B informou que, após elevação do compulsório sobre depósitos à vista, anunciada pelo Banco Central, parte dos recursos ficará imobilizada, podendo diminuir a oferta de crédito. Helena pergunta por que o limite do cheque especial caiu e o que, na prática, explica essa restrição de crédito.\n\nEnunciado: A explicação de Rafael é que a decisão do Banco Central:", 
+                options: [
+                    "estimula os bancos a remunerarem depósitos à vista, compensando os clientes; assim, a redução dos limites ocorre por decisão comercial, sem relação com liquidez.", 
+                    "promove ajustes operacionais e, uma vez cumpridas as exigências, os bancos podem emprestar o restante sem novas restrições, mantendo limites inalterados.", 
+                    "visa resguardar saldos dos correntistas, atuando como proteção direta, e eventuais cortes de limites não se relacionam diretamente às mudanças no compulsório.", 
+                    "retira dinheiro de circulação, diminuindo o montante que os bancos têm para emprestar e, consequentemente, levando a uma política de crédito mais restritiva."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: Elevação do compulsório imobiliza parte dos depósitos no Banco Central, reduz a liquidez dos bancos e, portanto, encolhe a base para concessão de crédito. Com menos recursos livres, instituições ajustam limites (como o cheque especial) e restringem oferta - exatamente o efeito observado por Helena." 
+            },
+            { 
+                id: 24, diff: "Médio", 
+                text: "Contexto: Em uma manhã de segunda-feira, Fernando, profissional CPA, observa duas situações em uma agência bancária. Primeiro, vê Paulo dirigir-se ao atendimento presencial para resolver uma divergência de saldo. Irritado com a espera, ele reclama do tempo de fila e diz que no aplicativo não encontra suporte humano direto. A atendente de triagem explica que poderia auxiliá-lo via atendimento remoto, mas Paulo insiste em falar com o gerente. Já Helena utiliza o terminal de autoatendimento para imprimir comprovantes, comentando que o sistema é rápido, mas às vezes falha.\n\nEnunciado: Considerando as situações observadas, Fernando pode esclarecer que:", 
+                options: [
+                    "o banco disponibiliza canais presenciais, digitais e telefônicos, com segurança e informações claras, e o cliente pode escolher conforme sua necessidade.",
+                    "o atendimento presencial tende a ser priorizado para resolver situações que envolvem divergências, pois o suporte digital tem limitações em certas demandas.", 
+                    "o canal digital substitui o presencial, devendo o cliente resolver suas solicitações no aplicativo ou telefone e com agendamento prévio para atendimentos nas agências.", 
+                    "a definição do canal de atendimento deve seguir regras internas de cada instituição, podendo exigir autorização do gerente para casos específicos."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O atendimento bancário deve garantir acesso eficiente e transparente, em canais físicos, digitais ou telefônicos. O cliente tem direito a escolher o meio mais adequado à sua demanda." 
+            },
+            { 
+                id: 25, diff: "Médio", 
+                text: "Contexto: Um investidor brasileiro, interessado em diversificar sua carteira, manifesta preocupação com a complexidade do acesso a ativos internacionais. Ele acredita que esse processo envolve barreiras operacionais e regulatórias, sem clareza sobre as soluções atualmente disponíveis no mercado.\n\nEnunciado: Neste caso, a compreensão da regulamentação permite ao profissional explicar que:", 
+                options: [
+                    "a abertura de conta internacional depende de relacionamento direto com bancos estrangeiros, sem soluções locais que simplifiquem o processo.", 
+                    "plataformas digitais permitem abrir contas no exterior, com integração cambial e fiscal, ampliando o acesso a diversos perfis de investidores.",
+                    "as remessas para investimentos no exterior requerem autorização formal do Banco Central a cada operação, mantendo etapas burocráticas obrigatórias.", 
+                    "o acesso a ativos internacionais é restrito a fundos exclusivos de maior porte, preservando barreiras relevantes para investidores de menor patrimônio."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: As plataformas digitais integraram câmbio e aspectos fiscais, democratizando a abertura de contas internacionais no Brasil." 
+            },
+            { 
+                id: 26, diff: "Médio", 
+                text: "Contexto: Durante uma renegociação de crédito consignado, uma cliente demonstra preocupação com os compromissos financeiros assumidos e questiona se o seguro prestamista contratado no empréstimo anterior ainda está em vigor. O profissional CPA analisa o histórico e observa que o refinanciamento gerou um novo contrato, com condições, valores e prazos distintos do anterior. A apólice anterior consta vinculada exclusivamente ao contrato original, emitida em função daquele saldo devedor e prazo.\n\nEnunciado: Nesse cenário, o profissional CPA deve explicar que:", 
+                options: [
+                    "a apólice original permanece válida até o término do prazo do novo empréstimo.", 
+                    "o beneficiário passa a ser a instituição bancária independentemente de nova apólice.", 
+                    "a apólice anterior deixa de vigorar, e exige-se nova cobertura prestamista vinculada ao credor.",
+                    "o seguro prestamista cobre as dívidas do cliente com a instituição."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O seguro é vinculado ao contrato que o originou e com o refinanciamento, há novo risco e saldo, exigindo nova apólice específica com o credor como beneficiário." 
+            },
+            { 
+                id: 27, diff: "Fácil", 
+                text: "Contexto: Em um call com Frederico, profissional certificado Anbima, o casal Rogério e Marina manifestam o desejo de conquistar independência financeira em vinte anos. Eles pretendem manter, na aposentadoria, um padrão de vida semelhante ao atual, mas não sabem como planejar a formação do patrimônio necessário. Rogério acredita que o ideal é aplicar toda a sobra de renda em produtos de maior rentabilidade, enquanto Marina entende que é essencial ações conservadoras. Frederico explica que, antes de escolher produtos, seria prudente dimensionar a reserva-alvo.\n\nEnunciado: Em sua explicação, Frederico mostra que o casal deve considerar:", 
+                options: [
+                    "o histórico da carteira ao estimar o patrimônio e os limites da projeção.", 
+                    "o patrimônio atual corrigido por inflação e os aportes constantes.", 
+                    "o saldo atual e os valores nominais das despesas futuras.", 
+                    "a taxa real e o horizonte de tempo para a aposentadoria desejada."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: Para dimensionar a reserva-alvo, o passo central é projetar necessidades reais ao longo do tempo. Usa-se taxa real (retorno acima da inflação) e horizonte de 20 anos para trazer ao valor presente o fluxo de consumo desejado, evitando ilusão monetária e escolhas de produto antes da meta financeira estar quantificada." 
+            },
+            { 
+                id: 28, diff: "Médio", 
+                text: "Contexto: Camila, profissional certificada CPA, atende Bruno e Sofia. A renda líquida mensal do casal é de R$ 8.200,00, complementada com bônus trimestrais incertos e \"bicos\" que oscilam. As despesas fixas (aluguel, escola, plano de saúde) somam cerca de R$ 4.100,00. As variáveis (mercado, transporte e lazer) mudam bastante. Além disso, existem gastos sazonais como IPTU, seguro do carro e matrícula escolar, que concentram pagamentos em alguns meses. O casal costuma \"guardar o que sobrar\", porém em meses com contas sazonais é necessário recorrer ao rotativo do cartão. Camila explica que a capacidade de poupança deve refletir uma sobra sustentável do fluxo de caixa, e não apenas um saldo aleatório no fim do mês. O casal questiona como eles podem medir quanto separar todo mês sem comprometer compromissos futuros.\n\nEnunciado: Para responder à dúvida do casal, Camila esclarece que uma estratégia possível seria:", 
+                options: [
+                    "estimar a renda líquida recorrente, subtrair despesas fixas e a média provisionada das variáveis e sazonais, e usar a sobra como poupança mensal de referência.",
+                    "adotar uma meta fixa de poupança como porcentagem da renda total, incorporando bônus e bicos ao cálculo mensal para elevar o valor separado.", 
+                    "calcular a poupança pela diferença entre renda anual projetada e despesas fixas do ano, assumindo que variáveis e sazonais se compensam ao longo dos meses.", 
+                    "basear a poupança em meses de maior renda, assumindo que os valores extras compensam eventuais déficits."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O enunciado traz bônus incertos e contas sazonais. A forma prudente é calcular a poupança sobre a renda recorrente (não sobre rendas incertas), descontando fixas, a média das variáveis e uma provisão mensal para sazonais (IPTU, seguro, matrícula). A sobra resulta numa poupança sustentável, reduzindo a chance de recorrer a crédito caro em meses de maior pressão." 
+            },
+            { 
+                id: 29, diff: "Médio", 
+                text: "Contexto: Felipe precisa decidir sobre o financiamento de um veículo para trabalho e pediu a Carla, profissional CPA, que esclarecesse as diferenças entre as propostas apresentadas pela concessionária. O carro custa R$ 100.000,00. Felipe tem renda líquida de R$ 12.000,00/mês, despesas essenciais de R$ 9.000,00 e reserva de emergência de R$ 47.000,00. Ele gostaria de preservar sua reserva com saldo suficiente para cobrir pelo menos 3 meses de despesas essenciais, evitar parcelas maiores que 20% da renda e minimizar o custo total do financiamento.\nAs propostas recebidas foram:\nFinanciamento em 60x, CET 22% a.a., entrada de R$ 10 mil, parcela de R$ 2.387,00;\nFinanciamento em 48x, CET 18% a.a., entrada de R$ 20 mil, parcela de R$ 2.295,00;\nFinanciamento em 36x com pagamento final de 40% do valor (parcela residual) ao término do contrato, CET 19% a.a., entrada de R$ 10 mil, parcelas de R$ 2.380,00;\nFinanciamento em 48x (preço com desconto para R$ 97.000,00), CET 17% a.a., entrada de R$ 25 mil, parcelas de R$ 2.033,00.\n\nEnunciado: Com a análise de Carla sobre as propostas, Felipe decidiu:", 
+                options: [
+                    "escolher 60x a 22% a.a., priorizando menor desembolso inicial e fluxo mais longo, aceitando um custo total relativamente mais alto.", 
+                    "optar pelo financiamento em 48x, assegurando CET competitivo com parcela abaixo de 20% da renda, preservando a reserva de 3 meses.",
+                    "adotar 36x com balloon de 40% a 19% a.a., privilegiando prestação corrente menor e planejamento específico para o residual ao término.", 
+                    "fechar 48x a 17% a.a. com desconto, reduzindo CET e prestação, admitindo um colchão de liquidez abaixo do nível de conforto definido."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O plano em 48x a 18% a.a. oferece equilíbrio entre custo e liquidez, mantendo a parcela em até 20% da renda e a reserva mínima de três meses, preservando a segurança financeira e evitando comprometer o orçamento. Parcela no máximo em 20% da renda = R$ 2.400. Reserva mínima de 3 meses dos gastos = R$ 27.000." 
+            },
+            { 
+                id: 30, diff: "Fácil", 
+                text: "Contexto: André, profissional CPA, recebeu Ricardo, um cliente que estava em dúvida sobre qual modelo de declaração de imposto de renda deveria escolher. Ele sempre optou pelo modelo simplificado, mas no último ano realizou investimentos expressivos em previdência complementar e questionou se valeria a pena mudar para o modelo completo.\n\nEnunciado: Nesse contexto, André explicou que a escolha entre os dois modelos deve considerar:", 
+                options: [
+                    "a quantidade de fontes de renda e o tipo de aplicação financeira, observando a incidência de tributos sobre os rendimentos do período.", 
+                    "a forma de recebimento dos rendimentos e categoria profissional, verificando a possibilidade de abatimentos automáticos.", 
+                    "a relação entre o total de despesas dedutíveis e o desconto padrão, avaliando qual opção resulta na menor base de cálculo do imposto.",
+                    "o volume de rendimentos e o valor das isenções, priorizando o modelo que garanta maior restituição no processamento da declaração."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: A decisão deve comparar despesas dedutíveis com o desconto simplificado de 20%, limitado pela Receita. O modelo mais vantajoso é o que reduz a base de cálculo do IR, e não necessariamente o que gera restituição." 
+            },
+            { 
+                id: 31, diff: "Fácil", 
+                text: "Contexto: Cláudio, motorista de aplicativo, teve uma despesa médica inesperada. Sem reserva, considerou três alternativas: usar o cheque especial, entrar no rotativo do cartão ou contratar um empréstimo pessoal do próprio banco. Na dúvida, ele procura Fernando, profissional CPA, e pede um caminho prático para cobrir a despesa gastando menos no tempo, já que conseguirá renda complementar nos próximos meses, mas não pode comprometer demais o fluxo de caixa imediato.\n\nEnunciado: Em sua análise, Fernando esclarece que Cláudio deve:", 
+                options: [
+                    "priorizar o cheque especial pela liberação imediata e usar o 13º salário para liquidar, já que a taxa alta seria compensada pela quitação futura.", 
+                    "avaliar o uso do rotativo do cartão no mês atual para manter flexibilidade e, se necessário, parcelar a fatura depois para alongar o pagamento.", 
+                    "verificar a possibilidade de um empréstimo pessoal de longo prazo, para reduzir a parcela mensal, ainda que o custo efetivo total fique mais elevado.",
+                    "comparar cada opção e escolher a com menor custo efetivo total e prazo compatível com o fluxo, planejando quitação sem recorrer a novos giros."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: A decisão deve ser guiada pelo Custo Efetivo Total (CET) e pela aderência do prazo ao fluxo de caixa. Cheque especial e rotativo tendem a ter custo elevado e recorrente; simular e escolher a alternativa de menor CET com prazo adequado reduz o gasto total e o risco de bola de neve." 
+            },
+            { 
+                id: 32, diff: "Médio", 
+                text: "Contexto: Em um atendimento de rotina, Marina, profissional CPA, recebeu Felipe, investidor iniciante, que tem como objetivo aumentar a rentabilidade de suas aplicações, mas relatou desconforto com oscilações nos valores dos investimentos. Felipe mantém parte dos recursos na poupança e o restante em um fundo de renda fixa simples.\n\nEnunciado: Marina explicou que, para atingir seus objetivos, Felipe pode:", 
+                options: [
+                    "analisar sua tolerância ao risco, seus objetivos financeiros e o horizonte de tempo.",
+                    "avaliar o seu histórico de aplicações e o volume investido ao longo do tempo.", 
+                    "definir seu perfil com base em sua carteira atual e na forma como reage às oscilações.", 
+                    "verificar seu nível de familiaridade com o mercado financeiro e de capitais."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O perfil resulta da combinação entre tolerância ao risco, objetivos e prazo. Esses vetores orientam a adequação de produtos e a proporção de risco aceitável, sem configurar recomendação. É a abordagem prevista por práticas de \"suitability\" de mercado." 
+            },
+            { 
+                id: 33, diff: "Fácil", 
+                text: "Contexto: Em um atendimento em agência, Elisa, profissional CPA, recebeu Roberto, cliente que aplicou em um fundo de renda fixa. Após conversa com um amigo, passou a acreditar que deveria migrar para um fundo de ações. Inseguro, Roberto pediu uma explicação sobre a composição da carteira do fundo e qual critério ele deve levar em consideração antes de investir.\n\nEnunciado: Elisa explicou que a ideia que ele teve é diversificar. Porém, para montar uma carteira de investimentos, Roberto deve:", 
+                options: [
+                    "buscar rendimento superior à média de mercado, priorizando retornos mais elevados.", 
+                    "estar alinhado ao perfil de risco, aos objetivos e a seu horizonte de investimento.",
+                    "manter liquidez imediata, permitindo resgate a qualquer momento.", 
+                    "privilegiar produtos com menor custo e regime tributário mais favorável."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: A adequação, segundo normas da CVM e Anbima, depende da relação entre perfil do investidor, objetivos e prazos. A análise de \"suitability\" visa proteger o cliente, assegurando que o risco e a estrutura do produto sejam coerentes com suas condições pessoais." 
+            },
+            { 
+                id: 34, diff: "Difícil", 
+                text: "Contexto: Em uma instituição participante do sistema de autorregulação da Anbima, um profissional CPA observa que sua equipe vem concentrando esforços em ampliar o volume de captação, encurtando etapas de atendimento e priorizando resultados quantitativos. Durante uma reunião estratégica, é pressionado a adotar a mesma conduta, sob o argumento de que \"os concorrentes já fazem assim, e o mercado exige resultados rápidos\". A situação coloca o profissional diante de impasse entre atender rapidamente às metas comerciais ou preservar a qualidade e a consistência do atendimento ao cliente.\n\nEnunciado: Diante da situação apresentada, espera-se que o profissional:", 
+                options: [
+                    "ajuste temporariamente o processo de atendimento, buscando conciliar as metas comerciais com o dever de oferecer orientação adequada ao cliente.", 
+                    "reporte o conflito à liderança direta e aguarde deliberação formal antes de alterar procedimentos, assegurando alinhamento institucional das decisões.", 
+                    "reafirme internamente os princípios de integridade, transparência e lealdade, sustentando que a orientação ao cliente deve prevalecer sobre metas comerciais de curto prazo.",
+                    "ajuste a rotina de atendimento para manter a produtividade, desde que o cliente confirme por escrito ter ciência dos riscos e da adequação dos produtos ofertados."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O Código de Conduta Ética da Anbima exige que o profissional aplique integridade, transparência e lealdade em todas as decisões e relacionamentos." 
+            },
+            { 
+                id: 35, diff: "Fácil", 
+                text: "Contexto: Um profissional certificado CPA atua em uma agência bancária no atendimento ao público em geral e um de seus parentes próximos mantém conta nessa instituição. Em consulta ao sistema interno, o profissional percebe que esse parente iniciou uma ordem de compra de ações de uma companhia que também integra sua carteira pessoal de investimentos. A ordem ainda não foi executada e o profissional não participou do atendimento nem da orientação ao parente. Ele reflete sobre qual conduta adotar para prevenir situações que possam ser interpretadas como conflito de interesses.\n\nEnunciado: Nesse contexto, a conduta adequada do profissional é:", 
+                options: [
+                    "comunicar o vínculo à instituição e prosseguir com a operação, com registro formal no sistema interno.", 
+                    "concluir a operação e explicar o caso, se houver questionamento por parte do controle interno.", 
+                    "fornecer ao parente somente informações públicas sobre o emissor, para seguir adiante com a operação.",
+                    "declarar o vínculo e informar aos controles internos as intenções de compra do seu parente."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: A conduta exige a declaração do vínculo e a abstenção, a fim de prevenir conflito de interesses, real ou potencial, e preservar a independência profissional." 
+            },
+            { 
+                id: 36, diff: "Fácil", 
+                text: "Contexto: Durante o fechamento do expediente, Cláudia, profissional CPA, percebeu que uma transferência automática de resgate de fundo não foi concluída no horário previsto. Ao investigar o caso, constatou que o problema ocorreu por uma falha interna e discutiu com os colegas quais tipos de eventos semelhantes poderiam gerar impactos financeiros para a instituição.\n\nEnunciado: Cláudia explicou que o evento descrito pode envolver:", 
+                options: [
+                    "falhas de sistemas, erros humanos ou problemas de processo que causem perdas financeiras diretas ou indiretas à instituição.",
+                    "atrasos ou inconsistências em procedimentos automatizados, decorrentes de falhas de comunicação entre sistemas internos e externos.", 
+                    "irregularidades em controles internos que gerem descumprimento de normas operacionais e possam afetar a experiência do cliente.", 
+                    "erros de registro, omissões em lançamentos contábeis ou falhas de conferência que provoquem distorções em informações financeiras."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O risco operacional abrange falhas de sistema, erro humano e deficiência de processos, podendo gerar prejuízos financeiros ou reputacionais sem envolver fatores de mercado, crédito ou liquidez." 
+            },
+            { 
+                id: 37, diff: "Difícil", 
+                text: "Contexto: Durante a rotina de acompanhamento de mercado, um profissional CPA identifica que, em dia de fechamento de índice, um participante com posição relevante em derivativos vinculados à variação do mercado executa uma série de negócios agressivos em poucos constituintes com baixo free float nos minutos finais do leilão de fechamento. O movimento resulta em leve ajuste positivo e melhora a marcação de posições no dia seguinte.\n\nEnunciado: Aplicando seu conhecimento técnico, o profissional CPA identifica que essa prática caracteriza:", 
+                options: [
+                    "money pass, caracterizado pela circulação de recursos entre contas relacionadas sem propósito econômico legítimo, configurando transferência artificial de valores.", 
+                    "manipulação de índice de referência, pela alteração deliberada de preços de ativos componentes com o objetivo de influenciar o desempenho do mercado.",
+                    "insider trading secundário, caracterizado pela utilização indireta de informação relevante não pública para obter vantagem em operações de mercado.", 
+                    "churning, caracterizado pelo aumento do número de negócios com a finalidade de gerar comissões sem justificativa econômica real."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: Intervenção para afetar indice caracteriza manipulação do índice de referência." 
+            },
+            { 
+                id: 38, diff: "Fácil", 
+                text: "Contexto: Uma corretora digital de varejo adota política de remuneração variável baseada no volume financeiro operado por cliente. Um profissional CPA certificado pela Anbima identifica que parte da equipe de atendimento automatizou ordens de compra e venda em contas com pequeno saldo, repetindo operações no mesmo ativo ao longo do dia, sem alteração relevante de preço. O sistema da corretora registra aumento significativo no volume de corretagens e variação expressiva nos resultados dos investidores. Diante da situação, o profissional CPA revisa relatórios de performance e nota padrões\n\nEnunciado: Nesse cenário, a conduta esperada do profissional CPA certificado pela Anbima é:", 
+                options: [
+                    "ajustar a comunicação comercial, orientando a equipe a reavaliar os parâmetros de execução das ordens, acompanhando as campanhas até confirmação da irregularidade.", 
+                    "considerar que a alta rotatividade das operações decorre de decisões autônomas dos investidores, reforçando mensagens educativas sobre disciplina e perfil de risco.", 
+                    "comunicar formalmente o compliance sobre o padrão de operações suspeitas e sugerir a suspensão temporária das campanhas até a apuração completa dos fatos.",
+                    "realizar o registro formal da ocorrência internamente e aguardar manifestação da auditoria independente antes de sugerir qualquer tipo de medida de contenção."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: O CPA deve reportar o indício de churning ao compliance e adotar postura preventiva, suspendendo práticas comerciais que possam configurar operações fraudulentas." 
+            },
+            { 
+                id: 39, diff: "Médio", 
+                text: "Contexto: Fernanda, profissional certificada CPA em uma instituição financeira, atende um pequeno empreendedor que buscou crédito em um banco tradicional (TradFi) para expandir seu negócio. O pedido foi negado porque o valor era considerado baixo em relação aos custos administrativos. O cliente ficou frustrado e perguntou se existem alternativas que poderiam atender sua necessidade. Sabendo que esse cliente tinha criptoativos na carteira, Fernanda explicou que uma opção moderna são as finanças descentralizadas (DeFi), que utilizam contratos em blockchain para automatizar operações e ampliar o acesso a serviços.\n\nEnunciado: Para auxiliar mais o cliente, Fernanda também explicou que essa opção oferece:", 
+                options: [
+                    "garantia de que todos os empréstimos sejam subsidiados por governos locais, independentemente do risco assumido pelo tomador.", 
+                    "dispensa da exigência de sobrecolateralização (overcollateralization) em todos os contratos, o que mantém o crédito mais acessível que no TradFi.", 
+                    "oferta de crédito direcionada a corporações que atuam como validadores das transações e concentram os recursos disponíveis.",
+                    "acesso aberto a protocolos de crédito, permitindo empréstimos potencialmente de menor valor sem depender da decisão direta de grandes bancos."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: O DeFi amplia o acesso ao crédito por meio de protocolos abertos em blockchain, permitindo empréstimos de menor valor sem depender da decisão de grandes bancos. Essa é a diferença central em relação ao TradFi no caso descrito, em que o pedido foi negado por não compensar os custos administrativos." 
+            },
+            { 
+                id: 40, diff: "Médio", 
+                text: "Contexto: Rafael, profissional certificado CPA, acompanha um cliente que realizou uma operação de empréstimo em uma plataforma DeFi. O cliente relata que o contrato foi executado automaticamente quando as condições previstas foram atingidas, sem necessidade de autorização de banco, cartório ou intermediário. Além disso, todas as regras da operação puderam ser verificadas previamente e permanecem registradas mesmo após a liquidação do contrato. O cliente estava acostumado ao sistema financeiro tradicional e pergunta a Rafael se esse tipo de operação é segura.\n\nEnunciado: Ao analisar a situação apresentada, Rafael esclarece que esse funcionamento é seguro porque o blockchain:", 
+                options: [
+                    "permite o registro imutável e compartilhado das regras e transações, viabilizando a execução automática de contratos e a validação descentralizada.",
+                    "substitui integralmente as instituições financeiras tradicionais, eliminando a necessidade de regulação ou supervisão sobre as operações.", 
+                    "atua como uma carteira digital centralizada, responsável por armazenar recursos e autorizar cada transação realizada na plataforma.", 
+                    "garante estabilidade de preços e proteção contra perdas financeiras, independentemente das condições de mercado ou do risco da operação."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O caso descreve execução automática, ausência de intermediários e verificação pública das regras, elementos que decorrem da aplicação prática do blockchain como registro distribuído, imutável e auditável." 
+            },
+            { 
+                id: 41, diff: "Médio", 
+                text: "Contexto: Carla, profissional certificada CPA, conversa com clientes interessados em negociar criptoativos. Um deles relata preocupação após ler sobre ataques a plataformas que mantinham grandes volumes de ativos sob custódia própria, concentrados em servidores únicos, o que resultou em perdas generalizadas. Carla explica que há plataformas DEX em que os ativos permanecem sob controle do próprio usuário e as operações ocorrem por meio de regras automáticas do sistema.\n\nEnunciado: Com base nessa explicação, Carla conclui que a plataforma relativamente menos exposta ao tipo de ataque descrito é aquela que:", 
+                options: [
+                    "concentra os ativos dos clientes em servidores privados, permitindo monitoramento contínuo por equipes especializadas em segurança digital.", 
+                    "funciona sem custódia centralizada de ativos, reduzindo impactos de ataques a servidores únicos, pois as operações ocorrem diretamente entre usuários.",
+                    "depende de autorização prévia de uma instituição responsável por validar e registrar todas as transações realizadas na plataforma.", 
+                    "mantém controle central dos ativos e oferece mecanismos de recuperação de acesso em caso de falhas operacionais ou invasões."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: O contexto descreve plataformas sem custódia central e sem ponto único de falha. Isso corresponde às DEXs, que reduzem riscos associados a ataques a servidores centralizados." 
+            },
+            { 
+                id: 42, diff: "Médio", 
+                text: "Contexto: Um novo cliente classificado como Pessoa Politicamente Exposta (PEP) dirige-se ao caixa de uma agência bancária e deseja realizar um depósito de R$ 300.000,00 em espécie.\n\nEnunciado: Segundo as diretrizes de Prevenção à Lavagem de Dinheiro (PLD/FT), o profissional de caixa, devidamente certificado, deve:", 
+                options: [
+                    "recusar o depósito, pois é terminantemente vedado o recebimento de valores em espécie superiores a R$ 50.000,00 de clientes classificados como PEP em espécie.", 
+                    "receber o recurso em uma sala privada e não comunicar a operação ao COAF, já que a PEP possui foro privilegiado.", 
+                    "acolher o depósito mediante identificação completa do portador, registrar a origem declarada e comunicar obrigatoriamente a operação em espécie ao COAF.",
+                    "orientar o cliente a fracionar o depósito em quantias de R$ 9.000,00 ao longo de vários dias para evitar bloqueios regulatórios e não chamar atenção (prática de smurfing)."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: Depósitos em espécie acima de R$ 50 mil possuem comunicação automática e obrigatória ao COAF. O banco não deve recusar o dinheiro em espécie sem um motivo flagrante de crime, mas deve identificar rigorosamente, registrar e reportar a operação ao órgão fiscalizador." 
+            },
+            { 
+                id: 43, diff: "Difícil", 
+                text: "Contexto: A Resolução CVM 175 alterou significativamente a estrutura e o funcionamento dos Fundos de Investimento no Brasil, permitindo, entre outras inovações, a criação de classes e subclasses de cotas dentro de um mesmo fundo multiclasse.\n\nEnunciado: Sobre essa estrutura, as subclasses de cotas atreladas a uma mesma classe devem, obrigatoriamente, diferenciar-se entre si apenas em relação a:", 
+                options: [
+                    "política de investimento, indexadores de benchmark e concentração por emissor de crédito privado.", 
+                    "regime tributário aplicável e moeda de liquidação das cotas no exterior.", 
+                    "segregação patrimonial dos ativos e instituições custodiantes terceirizadas vinculadas àquela subclasse.", 
+                    "taxas de administração, taxas de ingresso/saída, público-alvo e prazos de carência para resgate."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: Segundo a CVM 175, as CLASSES de um mesmo fundo podem ter diferentes políticas de investimento e patrimônios segregados. As SUBCLASSES (que ficam dentro da mesma classe) compartilham os mesmos ativos, mas diferenciam-se em custos (taxas), público-alvo (geral, qualificado) e condições comerciais (resgate/carência)." 
+            },
+            { 
+                id: 44, diff: "Difícil", 
+                text: "Contexto: Um fundo de investimento que se intitula com foco em sustentabilidade foi notificado pela Anbima. A notificação ocorreu por divulgar em seu prospecto publicitário que era \"Totalmente voltado para impacto ambiental positivo\", mas a análise técnica revelou que a carteira mantinha grande concentração em debêntures de empresas autuadas por desmatamento ilegal, sem nenhum plano de mitigação exigido pelo gestor.\n\nEnunciado: Essa prática de comunicação enganosa no mercado financeiro é tecnicamente conhecida como:", 
+                options: [
+                    "Greenwashing (lavagem verde).",
+                    "Front Running (corrida na frente).", 
+                    "Suitability Inverso.", 
+                    "Blue-washing ambiental corporativo."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: Greenwashing ocorre quando instituições financeiras ou empresas tentam passar uma imagem falsa ou exagerada de responsabilidade socioambiental (ESG) para atrair investidores, enquanto suas práticas reais de alocação não sustentam tal discurso." 
+            },
+            { 
+                id: 45, diff: "Difícil", 
+                text: "Contexto: Estatísticas demonstram que acidentes aéreos são extremamente raros comparados a acidentes de carro. No entanto, sempre que ocorre um desastre aéreo noticiado repetidamente nos telejornais, as seguradoras registram um aumento imediato nas vendas de seguros de viagem e de vida nos dias seguintes. O risco real estatístico não mudou, mas a percepção de risco das pessoas aumentou drasticamente devido às notícias recentes.\n\nEnunciado: Na teoria das Finanças Comportamentais, esse desvio de racionalidade é explicado pelo viés ou heurística da:", 
+                options: [
+                    "Heurística da Representatividade.", 
+                    "Heurística da Disponibilidade.",
+                    "Ancoragem.", 
+                    "Excesso de Confiança (Overconfidence)."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: A Heurística da Disponibilidade faz com que indivíduos julguem a probabilidade ou frequência de um evento com base na facilidade com que exemplos recentes, repetitivos ou emocionalmente impactantes vêm à memória." 
+            },
+            { 
+                id: 46, diff: "Difícil", 
+                text: "Contexto: Um cliente comprou ações da Empresa X a R$ 20,00 há alguns anos. Hoje, as ações valem R$ 8,00, a empresa perdeu seus fundamentos econômicos e a recomendação técnica unânime do mercado é de venda imediata do papel. No entanto, o cliente recusa-se a vender, afirmando categoricamente ao seu assessor que só vende quando a ação voltar a R$ 20,00 \"para não sair no prejuízo\".\n\nEnunciado: Esse comportamento de manter um ativo ruim e se recusar a concretizar o prejuízo é uma manifestação clássica do viés comportamental de:", 
+                options: [
+                    "Contabilidade Mental.", 
+                    "Efeito Manada.", 
+                    "Aversão à Perda.",
+                    "Heurística da Representatividade."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: A Aversão à Perda (Loss Aversion) explica a relutância do investidor em realizar (assumir matematicamente) o prejuízo. A dor psicológica de perder é maior do que o prazer de ganhar, levando o investidor a manter posições perdedoras na esperança irracional de recuperação." 
+            },
+            { 
+                id: 47, diff: "Difícil", 
+                text: "Contexto: Um investidor pessoa física mantém aplicações em um Fundo de Ações e em um Fundo Multimercado Longo Prazo, ambos constituídos na forma de condomínio aberto no Brasil.\n\nEnunciado: Com relação à tributação periódica conhecida como \"come-cotas\" (antecipação do Imposto de Renda nos meses de maio e novembro), o investidor deve ser informado de que essa sistemática:", 
+                options: [
+                    "incidirá em ambos os fundos, sendo recolhida à alíquota de 15% no fundo de ações e 20% no multimercado.", 
+                    "incidirá apenas no Fundo de Ações, visto que fundos multimercados são isentos até o momento do resgate.", 
+                    "foi extinta para todos os fundos abertos pela legislação recente, ocorrendo tributação apenas no momento do resgate total.", 
+                    "incidirá somente sobre o Fundo Multimercado Longo Prazo, à alíquota de 15%. Fundos de Ações são isentos da mecânica de come-cotas."
+                ], 
+                answer: 3, 
+                explanation: "Gabarito: Fundos de Ações (que possuem composição mínima exigida em renda variável pela CVM) NÃO sofrem a incidência da antecipação semestral de IR (come-cotas). O come-cotas incide historicamente em Fundos de Curto Prazo, Longo Prazo (Renda Fixa e Multimercado) e Cambiais." 
+            },
+            { 
+                id: 48, diff: "Difícil", 
+                text: "Contexto: O gestor de um fundo de renda fixa informa em seu relatório mensal que o fundo possui um VaR (Value at Risk) diário de R$ 50.000,00 com 95% de nível de confiança.\n\nEnunciado: Para a correta interpretação desse indicador de risco, isso significa que, em condições normais de mercado:", 
+                options: [
+                    "há uma probabilidade de apenas 5% de o fundo perder MAIS de R$ 50.000,00 em um único dia.",
+                    "o fundo garante um rendimento diário mínimo de R$ 50.000,00 em 95% dos dias do ano.", 
+                    "há 95% de chance de o fundo sofrer prejuízos superiores a R$ 50.000,00 todos os dias.", 
+                    "o limite máximo de perda do fundo, em qualquer cenário de estresse econômico ou quebra de mercado, está travado em exatos R$ 50.000,00."
+                ], 
+                answer: 0, 
+                explanation: "Gabarito: O VaR mensura a perda máxima esperada em condições normais para um dado horizonte de tempo e grau de confiança. Com 95% de confiança de que a perda máxima será R$ 50 mil, significa que, na cauda estatística (os 5% restantes), a perda poderá ser superior a R$ 50.000,00." 
+            },
+            { 
+                id: 49, diff: "Difícil", 
+                text: "Contexto: Julio possui um plano de previdência VGBL no qual declarou o regime de tributação regressiva (tabela definitiva) no ato da contratação. Hoje, passados 5 anos, seu perfil mudou e ele deseja fazer a portabilidade de todos os recursos para um plano PGBL com tabela progressiva compensável, mantendo a mesma seguradora.\n\nEnunciado: Pela legislação brasileira de Previdência Complementar, essa operação de portabilidade:", 
+                options: [
+                    "é permitida, mas ensejará o pagamento imediato de imposto de renda sobre os rendimentos auferidos ao longo dos 5 anos.", 
+                    "não é permitida, pois é vedada a portabilidade entre planos de naturezas diferentes (de VGBL para PGBL) e a troca do regime regressivo para o progressivo.",
+                    "é permitida livremente sem incidência de tributação no trânsito dos recursos, desde que mantida a instituição administradora original.", 
+                    "é permitida apenas se o saldo acumulado for integralmente transferido para a cobertura de risco de morte (pecúlio)."
+                ], 
+                answer: 1, 
+                explanation: "Gabarito: A legislação tributária e da SUSEP proíbe terminantemente a portabilidade de recursos de um VGBL para um PGBL (e vice-versa). Além disso, o regime tributário Regressivo é irretratável, não sendo possível migrar dele para o Progressivo em nenhuma hipótese." 
+            },
+            { 
+                id: 50, diff: "Difícil", 
+                text: "Contexto: Segundo os Códigos Anbima, os fundos de investimento abertos devem, como regra geral, registrar os ativos que compõem sua carteira pelo valor que eles poderiam ser negociados de forma justa no mercado financeiro no dia do fechamento da cota.\n\nEnunciado: Esse processo evita a transferência injusta de riqueza entre cotistas que aplicam ou resgatam no mesmo dia, e é chamado tecnicamente de:", 
+                options: [
+                    "Duration Modificada.", 
+                    "Marcação na Curva de Juros (Valor de Aquisição).", 
+                    "Marcação a Mercado (MaM).",
+                    "Hedge Contábil e Redutor de Risco."
+                ], 
+                answer: 2, 
+                explanation: "Gabarito: Marcação a Mercado é a atualização diária do preço dos ativos da carteira de um fundo com base no valor justo pelo qual seriam negociados (comprados/vendidos) no fechamento daquele dia. Isso garante equidade e transparência no cálculo do valor da cota para quem entra e quem sai do fundo." 
+            }
         ];
 
         const App = () => {
@@ -87,6 +633,7 @@
             const [answers, setAnswers] = useState({});
             const [timeLeft, setTimeLeft] = useState(150 * 60); // 2h 30m = 9000 seconds
             const [score, setScore] = useState(0);
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
             // Carregar estado salvo do LocalStorage
             useEffect(() => {
@@ -262,63 +809,83 @@
             return (
                 <div className="flex flex-col h-full overflow-hidden bg-slate-50">
                     {/* Header bar */}
-                    <header className="glass-panel flex items-center justify-between p-4 z-10 sticky top-0 shrink-0">
-                        <div className="flex items-center gap-4">
+                    <header className="glass-panel flex items-center justify-between p-3 md:p-4 z-20 sticky top-0 shrink-0">
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 md:hidden bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg shadow-sm border border-slate-200" title="Menu de Questões">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            </button>
                             <button onClick={handlePause} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg shadow-sm border border-slate-200" title="Pausar simulado">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </button>
                             <div className="hidden md:block font-bold text-slate-700">Modo Estudo Ativo</div>
                         </div>
                         
-                        <div className={`text-xl font-mono font-bold flex items-center gap-2 ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-slate-800'}`}>
+                        <div className={`text-lg md:text-xl font-mono font-bold flex items-center gap-1 md:gap-2 ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-slate-800'}`}>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" /></svg>
                             {formatTime(timeLeft)}
                         </div>
 
-                        <button onClick={handleFinish} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-lg shadow-md transition-colors">
+                        <button onClick={handleFinish} className="px-3 md:px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-lg shadow-md transition-colors">
                             Entregar
                         </button>
                     </header>
 
-                    <div className="flex flex-1 overflow-hidden">
-                        {/* Sidebar */}
-                        <aside className="w-20 md:w-64 bg-white border-r border-slate-200 overflow-y-auto custom-scrollbar shrink-0 p-2 md:p-4 hidden sm:block">
-                            <div className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider text-center md:text-left">Progresso</div>
-                            <div className="mb-4 text-center md:text-left">
-                                <span className="font-bold text-lg md:text-2xl text-slate-700">{stats.answeredCount}</span>
-                                <span className="text-slate-500"> / {stats.total}</span>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-1 md:gap-2">
-                                {questionsDB.map((_, i) => {
-                                    const isCurrent = i === currentQuestion;
-                                    const isAnswered = answers[i] !== undefined;
-                                    let btnClass = "h-8 md:h-10 w-full rounded flex items-center justify-center text-xs md:text-sm font-medium border cursor-pointer transition-all";
-                                    
-                                    if (isCurrent) {
-                                        btnClass += " ring-2 ring-blue-500 ring-offset-1 border-transparent " + (isAnswered ? "bg-blue-600 text-white" : "bg-white text-blue-600");
-                                    } else if (isAnswered) {
-                                        btnClass += " bg-slate-200 border-transparent text-slate-600";
-                                    } else {
-                                        btnClass += " bg-white border-slate-200 text-slate-400 hover:bg-slate-50";
-                                    }
+                    <div className="flex flex-1 overflow-hidden relative">
+                        {/* Mobile Overlay */}
+                        {isMobileMenuOpen && (
+                            <div 
+                                className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 md:hidden"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            ></div>
+                        )}
 
-                                    return (
-                                        <button key={i} onClick={() => setCurrentQuestion(i)} className={btnClass} title={`Ir para questão ${i+1}`}>{i + 1}</button>
-                                    )
-                                })}
+                        {/* Sidebar (Responsive Drawer) */}
+                        <aside className={`fixed inset-y-0 left-0 z-40 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static w-72 md:w-64 bg-white border-r border-slate-200 flex flex-col h-full transition-transform duration-300 shadow-2xl md:shadow-none`}>
+                            <div className="p-4 border-b border-slate-100 flex justify-between items-center md:hidden shrink-0">
+                                <span className="font-bold text-slate-700">Navegação</span>
+                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                            <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
+                                <div className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Progresso</div>
+                                <div className="mb-4">
+                                    <span className="font-bold text-2xl text-slate-700">{stats.answeredCount}</span>
+                                    <span className="text-slate-500"> / {stats.total}</span>
+                                </div>
+                                
+                                <div className="grid grid-cols-5 gap-2">
+                                    {questionsDB.map((_, i) => {
+                                        const isCurrent = i === currentQuestion;
+                                        const isAnswered = answers[i] !== undefined;
+                                        let btnClass = "h-10 w-full rounded flex items-center justify-center text-sm font-medium border cursor-pointer transition-all";
+                                        
+                                        if (isCurrent) {
+                                            btnClass += " ring-2 ring-blue-500 ring-offset-1 border-transparent " + (isAnswered ? "bg-blue-600 text-white" : "bg-white text-blue-600");
+                                        } else if (isAnswered) {
+                                            btnClass += " bg-slate-200 border-transparent text-slate-600";
+                                        } else {
+                                            btnClass += " bg-white border-slate-200 text-slate-400 hover:bg-slate-50";
+                                        }
+
+                                        return (
+                                            <button key={i} onClick={() => { setCurrentQuestion(i); setIsMobileMenuOpen(false); }} className={btnClass} title={`Ir para questão ${i+1}`}>{i + 1}</button>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         </aside>
 
-                        {/* Main Question Area - Com Feedback Imediato */}
-                        <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 relative pb-24">
-                            <div className="max-w-3xl mx-auto p-4 md:p-8">
-                                <div className="mb-8">
+                        {/* Main Question Area */}
+                        <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 relative">
+                            {/* pb-28 garante que o conteúdo não seja escondido pelo rodapé fixo no mobile */}
+                            <div className="max-w-3xl mx-auto p-4 md:p-8 pb-28 md:pb-28">
+                                <div className="mb-6 md:mb-8">
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className="bg-slate-800 text-white px-3 py-1 rounded font-bold text-sm">Questão {currentQuestion + 1}</span>
                                         <span className="bg-slate-200 text-slate-600 px-3 py-1 rounded text-sm">{q.diff}</span>
                                     </div>
-                                    <h2 className="text-lg md:text-xl text-slate-800 leading-relaxed font-medium whitespace-pre-wrap">
+                                    <h2 className="text-base md:text-xl text-slate-800 leading-relaxed font-medium whitespace-pre-wrap">
                                         {q.text}
                                     </h2>
                                 </div>
@@ -326,22 +893,22 @@
                                 <div className="space-y-3">
                                     {q.options.map((option, idx) => {
                                         const isSelected = answers[currentQuestion] === idx;
+                                        const hasAnswered = answers[currentQuestion] !== undefined;
                                         const isCorrect = idx === q.answer;
                                         
-                                        // Estilização dinâmica condicional
                                         let optionClass = 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50 cursor-pointer';
                                         let dotClass = 'border-slate-300';
                                         let textClass = 'text-slate-600';
                                         let letterClass = 'text-slate-400';
 
-                                        if (hasAnsweredCurrent) {
+                                        if (hasAnswered) {
                                             if (isCorrect) {
-                                                optionClass = 'border-green-500 bg-green-50/70 shadow-sm cursor-default';
+                                                optionClass = 'border-green-500 bg-green-50/50 shadow-sm cursor-default';
                                                 dotClass = 'border-green-500 bg-green-500';
                                                 textClass = 'text-green-900 font-medium';
                                                 letterClass = 'text-green-700';
                                             } else if (isSelected) {
-                                                optionClass = 'border-red-400 bg-red-50/70 shadow-sm cursor-default';
+                                                optionClass = 'border-red-500 bg-red-50/50 shadow-sm cursor-default';
                                                 dotClass = 'border-red-500 bg-red-500';
                                                 textClass = 'text-red-900 font-medium line-through opacity-70';
                                                 letterClass = 'text-red-700';
@@ -353,34 +920,34 @@
                                         }
 
                                         return (
-                                            <label key={idx} className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all ${optionClass}`}>
-                                                <div className="pt-1">
-                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${dotClass}`}>
-                                                        {hasAnsweredCurrent && (isCorrect || isSelected) && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                                            <label key={idx} className={`flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl border-2 transition-all ${optionClass}`}>
+                                                <div className="pt-0.5 md:pt-1 shrink-0">
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${dotClass}`}>
+                                                        {hasAnswered && (isCorrect || isSelected) && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                                                        {!hasAnswered && isSelected && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>}
                                                     </div>
                                                 </div>
-                                                <div className={`flex-1 text-base md:text-lg ${textClass}`}>
-                                                    <span className={`font-bold mr-2 ${letterClass}`}>{String.fromCharCode(65 + idx)})</span> 
+                                                <div className={`flex-1 text-sm md:text-lg ${textClass}`}>
+                                                    <span className={`font-bold mr-1 md:mr-2 ${letterClass}`}>{String.fromCharCode(65 + idx)})</span> 
                                                     {option}
                                                 </div>
-                                                {/* Input desabilitado se a questão já foi respondida para não alterar o acerto/erro */}
-                                                <input type="radio" name={`question-${currentQuestion}`} value={idx} checked={isSelected} onChange={() => !hasAnsweredCurrent && handleAnswer(currentQuestion, idx)} disabled={hasAnsweredCurrent} className="hidden" />
+                                                <input type="radio" name={`question-${currentQuestion}`} value={idx} checked={isSelected} onChange={() => !hasAnswered && handleAnswer(currentQuestion, idx)} disabled={hasAnswered} className="hidden" />
                                             </label>
                                         )
                                     })}
                                 </div>
 
-                                {/* Seção de Explicação que surge assim que a resposta é clicada */}
+                                {/* Seção de Feedback Imediato */}
                                 {hasAnsweredCurrent && (
-                                    <div className={`mt-8 p-6 rounded-xl border-l-4 shadow-sm transition-all animate-fade-in-up ${answers[currentQuestion] === q.answer ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
-                                        <h3 className={`font-bold text-xl mb-3 flex items-center gap-2 ${answers[currentQuestion] === q.answer ? 'text-green-800' : 'text-red-800'}`}>
+                                    <div className={`mt-6 p-4 md:p-5 rounded-xl border-l-4 shadow-sm transition-all duration-500 ${answers[currentQuestion] === q.answer ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                                        <h3 className={`font-bold text-base md:text-lg mb-2 flex items-center gap-2 ${answers[currentQuestion] === q.answer ? 'text-green-800' : 'text-red-800'}`}>
                                             {answers[currentQuestion] === q.answer ? (
-                                                <><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Correto!</>
+                                                <><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Resposta Correta!</>
                                             ) : (
-                                                <><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Incorreto</>
+                                                <><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Resposta Incorreta</>
                                             )}
                                         </h3>
-                                        <p className="text-slate-800 leading-relaxed text-lg">
+                                        <p className="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap">
                                             {q.explanation}
                                         </p>
                                     </div>
@@ -389,30 +956,32 @@
                         </main>
                     </div>
 
-                    {/* Footer Nav Bar */}
-                    <footer className="glass-panel absolute bottom-0 left-0 right-0 sm:left-20 md:left-64 p-4 border-t border-slate-200 flex justify-between items-center shrink-0">
+                    {/* Footer Nav Bar - Fixo no Mobile */}
+                    <footer className="glass-panel fixed bottom-0 left-0 right-0 md:left-64 p-3 md:p-4 border-t border-slate-200 flex justify-between items-center z-10 pb-safe">
                         <button 
                             onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
                             disabled={currentQuestion === 0}
-                            className={`px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 ${currentQuestion === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
+                            className={`px-4 md:px-6 py-2.5 rounded-lg font-bold flex items-center gap-1 md:gap-2 ${currentQuestion === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm'}`}>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                            Anterior
+                            <span className="hidden sm:inline">Anterior</span>
                         </button>
 
-                        <div className="text-sm font-bold text-slate-500 block sm:hidden">{currentQuestion + 1} / {questionsDB.length}</div>
+                        <div className="text-xs md:text-sm font-bold text-slate-600 bg-slate-200 px-3 py-1.5 rounded-full">
+                            {currentQuestion + 1} / {questionsDB.length}
+                        </div>
 
                         {currentQuestion < questionsDB.length - 1 ? (
                             <button 
                                 onClick={() => setCurrentQuestion(prev => Math.min(questionsDB.length - 1, prev + 1))}
-                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors">
-                                Próxima
+                                className="px-4 md:px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md flex items-center gap-1 md:gap-2 transition-colors">
+                                <span className="hidden sm:inline">Próxima</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
                             </button>
                         ) : (
                             <button 
                                 onClick={handleFinish}
-                                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-md flex items-center gap-2 transition-colors">
-                                Finalizar
+                                className="px-4 md:px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-md flex items-center gap-1 md:gap-2 transition-colors">
+                                <span className="hidden sm:inline">Finalizar</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                             </button>
                         )}
